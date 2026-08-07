@@ -1,0 +1,14 @@
+# Nifty 500 stock symbols — one per line
+# .NS suffix is optional (added automatically if missing)
+# Lines starting with # are ignored
+#
+# To populate: download the Nifty 500 list from NSE India
+# https://www.niftyindices.com/IndexConstituent/ind_nifty500list.csv
+# and paste the symbols here.
+#
+# Example:
+# RELIANCE
+# TCS
+# HDFCBANK
+# INFY
+# ICICIBANK
