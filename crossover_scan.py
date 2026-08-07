@@ -73,6 +73,9 @@ def scan_stock(symbol: str) -> dict | None:
         ticker = yf.Ticker(symbol)
         df = ticker.history(period=f"{HISTORY_DAYS}d", interval="1d")
 
+        # Drop rows where OHLC data is missing
+        df = df.dropna(subset=["Open", "High", "Low", "Close", "Volume"])
+
         if df.empty or len(df) < SMA_SLOW + 10:
             return None
 
@@ -88,6 +91,10 @@ def scan_stock(symbol: str) -> dict | None:
         s100 = sma100.iloc[-1]
         s350 = sma350.iloc[-1]
 
+        # Skip if SMAs are NaN (insufficient clean data)
+        if pd.isna(s100) or pd.isna(s350) or pd.isna(close.iloc[-1]):
+            return None
+
         # Only interested in golden cross (100 > 350)
         if s100 <= s350:
             return None
@@ -95,10 +102,10 @@ def scan_stock(symbol: str) -> dict | None:
         ltp = round(close.iloc[-1], 2)
         s100_r = round(s100, 2)
         s350_r = round(s350, 2)
-        rsi_val = round(rsi.iloc[-1], 2)
-        adx_val = round(adx.iloc[-1], 2)
-        pdi = round(plus_di.iloc[-1], 2)
-        mdi = round(minus_di.iloc[-1], 2)
+        rsi_val = round(rsi.iloc[-1], 2) if not pd.isna(rsi.iloc[-1]) else 0.0
+        adx_val = round(adx.iloc[-1], 2) if not pd.isna(adx.iloc[-1]) else 0.0
+        pdi = round(plus_di.iloc[-1], 2) if not pd.isna(plus_di.iloc[-1]) else 0.0
+        mdi = round(minus_di.iloc[-1], 2) if not pd.isna(minus_di.iloc[-1]) else 0.0
         ext_pct = round(((ltp - s100) / s100) * 100, 2) if s100 > 0 else 0
 
         # Find when the golden cross happened
