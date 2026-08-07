@@ -1,6 +1,6 @@
 # Golden Cross Monitor
 
-**Last updated:** 2026-08-08 00:09 IST
+**Last updated:** 2026-08-08 00:17 IST
 **Market (Nifty 500):** ✓ Nifty 500 above both SMAs — healthy
 
 ---
@@ -33,7 +33,7 @@
 | TCS | 🔴 DEATH CROSS | ₹nan | ₹nan | ₹nan | 57.96 | 25.4 | 0% | 100 SMA < 350 SMA — full exit signal |
 | TRANSRAILL | 🔴 DEATH CROSS | ₹nan | ₹nan | ₹nan | 47.53 | 12.62 | 0% | 100 SMA < 350 SMA — full exit signal |
 | TVSMOTOR | 🔴 DEATH CROSS | ₹nan | ₹nan | ₹nan | 74.83 | 38.88 | 0% | 100 SMA < 350 SMA — full exit signal |
-| WAAREERTL | ❌ ERROR | — | — | — | — | — | — | Insufficient data (332 bars, need 360+) |
+| WAAREERTL | ❌ ERROR | — | — | — | — | — | — | Insufficient data (331 bars, need 360+) |
 | YESBANK | 🔴 DEATH CROSS | ₹nan | ₹nan | ₹nan | 40.06 | 18.07 | 0% | 100 SMA < 350 SMA — full exit signal |
 
 ---

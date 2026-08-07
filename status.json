@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-08T00:09:28.417712+05:30",
+  "updated": "2026-08-08T00:17:14.879322+05:30",
   "market": {
     "signal": "\u2713",
     "note": "Nifty 500 above both SMAs \u2014 healthy"
@@ -497,7 +497,7 @@
       "rule_2_1": false,
       "rule_2_2": false,
       "alerts": [],
-      "error": "Insufficient data (332 bars, need 360+)"
+      "error": "Insufficient data (331 bars, need 360+)"
     },
     {
       "symbol": "YESBANK",
