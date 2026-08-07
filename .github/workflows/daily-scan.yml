@@ -1,0 +1,38 @@
+name: Daily Golden Cross Scan
+
+on:
+  schedule:
+    # Runs at 16:30 IST (11:00 UTC) — after Indian market close
+    - cron: '0 11 * * 1-5'
+  workflow_dispatch:  # Manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scanner
+        run: python scanner.py
+
+      - name: Commit results
+        run: |
+          git config user.name "golden-cross-bot"
+          git config user.email "bot@golden-cross-monitor"
+          git add status.md status.json
+          # Only commit if there are changes
+          git diff --staged --quiet || git commit -m "scan: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
