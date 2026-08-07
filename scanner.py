@@ -89,8 +89,11 @@ def scan_stock(symbol: str) -> dict:
         ticker = yf.Ticker(symbol)
         df = ticker.history(period=f"{HISTORY_DAYS}d", interval="1d")
 
+        # Drop rows where OHLC data is missing
+        df = df.dropna(subset=["Open", "High", "Low", "Close", "Volume"])
+
         if df.empty or len(df) < SMA_SLOW + 10:
-            result["error"] = f"Insufficient data ({len(df)} bars, need {SMA_SLOW + 10}+)"
+            result["error"] = f"Insufficient data ({len(df)} clean bars, need {SMA_SLOW + 10}+)"
             return result
 
         close = df["Close"]
@@ -102,14 +105,22 @@ def scan_stock(symbol: str) -> dict:
         rsi = calc_rsi(close, RSI_PERIOD)
         adx, plus_di, minus_di = calc_adx(high, low, close, ADX_PERIOD)
 
-        # Latest values
-        ltp = round(close.iloc[-1], 2)
-        s100 = round(sma100.iloc[-1], 2)
-        s350 = round(sma350.iloc[-1], 2)
-        rsi_val = round(rsi.iloc[-1], 2)
-        adx_val = round(adx.iloc[-1], 2)
-        pdi = round(plus_di.iloc[-1], 2)
-        mdi = round(minus_di.iloc[-1], 2)
+        # Latest values — guard against residual NaN
+        ltp = close.iloc[-1]
+        s100_raw = sma100.iloc[-1]
+        s350_raw = sma350.iloc[-1]
+
+        if pd.isna(ltp) or pd.isna(s100_raw) or pd.isna(s350_raw):
+            result["error"] = f"SMA not ready (have {len(df)} bars, SMA350 needs {SMA_SLOW}+ non-NaN)"
+            return result
+
+        ltp = round(ltp, 2)
+        s100 = round(s100_raw, 2)
+        s350 = round(s350_raw, 2)
+        rsi_val = round(rsi.iloc[-1], 2) if not pd.isna(rsi.iloc[-1]) else 0.0
+        adx_val = round(adx.iloc[-1], 2) if not pd.isna(adx.iloc[-1]) else 0.0
+        pdi = round(plus_di.iloc[-1], 2) if not pd.isna(plus_di.iloc[-1]) else 0.0
+        mdi = round(minus_di.iloc[-1], 2) if not pd.isna(minus_di.iloc[-1]) else 0.0
 
         result["ltp"] = ltp
         result["sma100"] = s100
@@ -182,6 +193,7 @@ def check_market() -> dict:
     """Check Nifty 500 SMA health."""
     try:
         df = yf.Ticker("^CRSLDX").history(period=f"{HISTORY_DAYS}d", interval="1d")
+        df = df.dropna(subset=["Close"])
         if df.empty or len(df) < SMA_SLOW + 10:
             return {"signal": "?", "note": "Insufficient Nifty 500 data"}
 
@@ -189,6 +201,9 @@ def check_market() -> dict:
         s100 = calc_sma(close, SMA_FAST).iloc[-1]
         s350 = calc_sma(close, SMA_SLOW).iloc[-1]
         ltp = close.iloc[-1]
+
+        if pd.isna(s100) or pd.isna(s350) or pd.isna(ltp):
+            return {"signal": "?", "note": "Nifty 500 SMA data incomplete"}
 
         if ltp > s100 and ltp > s350:
             return {"signal": "✓", "note": "Nifty 500 above both SMAs — healthy"}
