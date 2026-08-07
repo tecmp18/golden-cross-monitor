@@ -1,5 +1,5 @@
 # One NSE symbol per line (with .NS suffix)
 # Lines starting with # are ignored
 # Example:
-# KAMDHENU.NS
-# CGPOWER.NS
+KAMDHENU.NS
+CGPOWER.NS
