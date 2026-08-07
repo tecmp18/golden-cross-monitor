@@ -1,47 +1,42 @@
 #!/usr/bin/env python3
 """
 Nifty 500 Golden Crossover Scanner
-Scans all stocks in nifty500.txt for fresh or recent golden crosses (100 SMA > 350 SMA).
+===================================
+Scans all stocks in nifty500.txt for active golden crosses (100 SMA > 350 SMA).
+Highlights fresh crosses (within last 30 trading days).
 Designed to run weekly via GitHub Actions.
-Outputs to crossovers.md.
+Outputs to crossovers.md and crossovers.json.
 """
 
 import sys
 import json
-import time
-import logging
-import concurrent.futures
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
 
-# Suppress yfinance noise (404s, delisted warnings)
-logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
-
-# ─── Configuration ───────────────────────────────────────────────────────────
-
+# ─────────────────────────────────────────────
+# PARAMETERS
+# ─────────────────────────────────────────────
 SMA_FAST = 100
 SMA_SLOW = 350
 RSI_PERIOD = 14
 ADX_PERIOD = 14
-HISTORY_DAYS = 500
-BATCH_SIZE = 10          # download tickers in batches to avoid rate limits
-BATCH_SLEEP = 2          # seconds between batches
-CROSS_LOOKBACK = 30      # flag crosses that happened within last N trading days
-STOCK_TIMEOUT = 30       # seconds before giving up on a single stock
+DATA_PERIOD = "2y"          # same as turtle scanner
+CROSS_LOOKBACK = 30         # flag crosses within last N trading days
+
+IST = ZoneInfo("Asia/Kolkata")
 
 
-# ─── Indicator calculations (shared with scanner.py) ────────────────────────
+# ─────────────────────────────────────────────
+# INDICATOR CALCULATIONS
+# ─────────────────────────────────────────────
 
-def calc_sma(series: pd.Series, period: int) -> pd.Series:
-    return series.rolling(window=period, min_periods=period).mean()
-
-
-def calc_rsi(close: pd.Series, period: int = 14) -> pd.Series:
+def calc_rsi(close, period=14):
     delta = close.diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
@@ -51,7 +46,7 @@ def calc_rsi(close: pd.Series, period: int = 14) -> pd.Series:
     return 100 - (100 / (1 + rs))
 
 
-def calc_adx(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14):
+def calc_adx(high, low, close, period=14):
     plus_dm = high.diff()
     minus_dm = -low.diff()
     plus_dm = plus_dm.where((plus_dm > minus_dm) & (plus_dm > 0), 0.0)
@@ -71,53 +66,54 @@ def calc_adx(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14
     return adx, plus_di, minus_di
 
 
-# ─── Scan one stock ─────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# STOCK ANALYSIS
+# ─────────────────────────────────────────────
 
-def scan_stock(symbol: str) -> dict | None:
-    """Check if a stock has an active golden cross. Returns dict or None on error."""
+def analyze_stock(symbol):
+    """
+    Check if a stock has an active golden cross.
+    Returns dict with signal details, or None.
+    """
     try:
         ticker = yf.Ticker(symbol)
-        df = ticker.history(period=f"{HISTORY_DAYS}d", interval="1d")
-
-        # Drop rows where OHLC data is missing
-        df = df.dropna(subset=["Open", "High", "Low", "Close", "Volume"])
+        df = ticker.history(period=DATA_PERIOD)
 
         if df.empty or len(df) < SMA_SLOW + 10:
             return None
 
-        close = df["Close"]
-        high = df["High"]
-        low = df["Low"]
+        # Compute indicators
+        df['SMA_100'] = df['Close'].rolling(window=SMA_FAST).mean()
+        df['SMA_350'] = df['Close'].rolling(window=SMA_SLOW).mean()
+        df['RSI'] = calc_rsi(df['Close'], RSI_PERIOD)
+        df['ADX'], df['Plus_DI'], df['Minus_DI'] = calc_adx(
+            df['High'], df['Low'], df['Close'], ADX_PERIOD
+        )
 
-        sma100 = calc_sma(close, SMA_FAST)
-        sma350 = calc_sma(close, SMA_SLOW)
-        rsi = calc_rsi(close, RSI_PERIOD)
-        adx, plus_di, minus_di = calc_adx(high, low, close, ADX_PERIOD)
-
-        s100 = sma100.iloc[-1]
-        s350 = sma350.iloc[-1]
-
-        # Skip if SMAs are NaN (insufficient clean data)
-        if pd.isna(s100) or pd.isna(s350) or pd.isna(close.iloc[-1]):
+        # Drop rows where indicators aren't ready
+        df = df.dropna(subset=['SMA_100', 'SMA_350', 'RSI', 'ADX'])
+        if len(df) < 2:
             return None
+
+        latest = df.iloc[-1]
+        close = latest['Close']
+        sma100 = latest['SMA_100']
+        sma350 = latest['SMA_350']
 
         # Only interested in golden cross (100 > 350)
-        if s100 <= s350:
+        if sma100 <= sma350:
             return None
 
-        ltp = round(close.iloc[-1], 2)
-        s100_r = round(s100, 2)
-        s350_r = round(s350, 2)
-        rsi_val = round(rsi.iloc[-1], 2) if not pd.isna(rsi.iloc[-1]) else 0.0
-        adx_val = round(adx.iloc[-1], 2) if not pd.isna(adx.iloc[-1]) else 0.0
-        pdi = round(plus_di.iloc[-1], 2) if not pd.isna(plus_di.iloc[-1]) else 0.0
-        mdi = round(minus_di.iloc[-1], 2) if not pd.isna(minus_di.iloc[-1]) else 0.0
-        ext_pct = round(((ltp - s100) / s100) * 100, 2) if s100 > 0 else 0
+        rsi_val = latest['RSI']
+        adx_val = latest['ADX']
+        pdi = latest['Plus_DI']
+        mdi = latest['Minus_DI']
+        ext_pct = round(((close - sma100) / sma100) * 100, 2)
+        price_above_both = close > sma100 and close > sma350
 
         # Find when the golden cross happened
-        cross_diff = sma100 - sma350
-        cross_series = cross_diff.dropna()
-        cross_sign = np.sign(cross_series)
+        cross_diff = df['SMA_100'] - df['SMA_350']
+        cross_sign = np.sign(cross_diff)
         cross_changes = cross_sign.diff().fillna(0)
         golden_crosses = cross_changes[cross_changes == 2]
 
@@ -131,18 +127,15 @@ def scan_stock(symbol: str) -> dict | None:
             if cross_age <= CROSS_LOOKBACK:
                 freshness = "🆕 Fresh"
 
-        # Price position
-        price_above_both = ltp > s100_r and ltp > s350_r
-
         return {
             "symbol": symbol.replace(".NS", ""),
-            "ltp": ltp,
-            "sma100": s100_r,
-            "sma350": s350_r,
-            "rsi": rsi_val,
-            "adx": adx_val,
-            "plus_di": pdi,
-            "minus_di": mdi,
+            "ltp": round(close, 2),
+            "sma100": round(sma100, 2),
+            "sma350": round(sma350, 2),
+            "rsi": round(rsi_val, 2),
+            "adx": round(adx_val, 2),
+            "plus_di": round(pdi, 2),
+            "minus_di": round(mdi, 2),
             "extension_pct": ext_pct,
             "cross_date": cross_date,
             "cross_age_days": cross_age,
@@ -151,15 +144,60 @@ def scan_stock(symbol: str) -> dict | None:
             "di_bullish": pdi > mdi,
         }
 
-    except Exception:
+    except Exception as e:
+        print(f"  ✗ Error analyzing {symbol}: {e}")
         return None
 
 
-# ─── Output ──────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# SCANNER (matches turtle scanner pattern)
+# ─────────────────────────────────────────────
 
-def generate_markdown(results: list, total_scanned: int, errors: int) -> str:
-    ist = timezone(timedelta(hours=5, minutes=30))
-    now = datetime.now(ist).strftime("%Y-%m-%d %H:%M IST")
+def load_stock_list(filepath):
+    """Load stock symbols from file, one per line."""
+    path = Path(filepath)
+    if not path.exists():
+        print(f"✗ Stock list not found: {filepath}")
+        sys.exit(1)
+
+    symbols = [line.strip() for line in path.read_text().splitlines()
+               if line.strip() and not line.strip().startswith('#')]
+    symbols = [s if s.endswith('.NS') else s + '.NS' for s in symbols]
+    return symbols
+
+
+def run_scan(symbols):
+    """Scan all symbols for golden crosses. Returns list of signal dicts."""
+    results = []
+    errors = 0
+    total = len(symbols)
+
+    print(f"\n{'='*60}")
+    print(f"  GOLDEN CROSSOVER SCANNER")
+    print(f"  SMA {SMA_FAST} > SMA {SMA_SLOW} | Fresh window: {CROSS_LOOKBACK}d")
+    print(f"  Scanning {total} stocks")
+    print(f"  {datetime.now(IST).strftime('%Y-%m-%d %H:%M IST')}")
+    print(f"{'='*60}\n")
+
+    for idx, symbol in enumerate(symbols, 1):
+        print(f"  [{idx}/{total}] {symbol}...", end='\r')
+        result = analyze_stock(symbol)
+        if result:
+            results.append(result)
+        else:
+            errors += 1
+
+    print(f"\n\n  ✓ Scan complete. {len(results)} golden cross(es) found.")
+    print(f"  ✗ Errors/no-data/no-cross: {errors}\n")
+    return results, errors
+
+
+# ─────────────────────────────────────────────
+# OUTPUT
+# ─────────────────────────────────────────────
+
+def generate_markdown(results, total_scanned, errors):
+    now = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
 
     # Sort: fresh crosses first, then by cross age (newest first)
     results.sort(key=lambda r: (
@@ -219,86 +257,27 @@ def generate_markdown(results: list, total_scanned: int, errors: int) -> str:
     return "\n".join(lines)
 
 
-# ─── Main ────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────────
 
-def main():
-    nifty_path = Path(__file__).parent / "nifty500.txt"
-    if not nifty_path.exists():
-        print("ERROR: nifty500.txt not found")
-        sys.exit(1)
-
-    symbols = []
-    for line in nifty_path.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#"):
-            # Ensure .NS suffix
-            if not line.endswith(".NS"):
-                line = line + ".NS"
-            symbols.append(line)
-
-    if not symbols:
-        print("WARNING: nifty500.txt is empty")
-        sys.exit(0)
-
-    print(f"Scanning {len(symbols)} Nifty 500 stocks for golden crosses...")
-    print(f"Batch size: {BATCH_SIZE}, sleep: {BATCH_SLEEP}s between batches\n")
-
-    results = []
-    errors = 0
-    skipped = []
-
-    for i in range(0, len(symbols), BATCH_SIZE):
-        batch = symbols[i : i + BATCH_SIZE]
-        batch_num = (i // BATCH_SIZE) + 1
-        total_batches = (len(symbols) + BATCH_SIZE - 1) // BATCH_SIZE
-        print(f"  Batch {batch_num}/{total_batches}: {', '.join(s.replace('.NS','') for s in batch)}")
-
-        for sym in batch:
-            try:
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(scan_stock, sym)
-                    r = future.result(timeout=STOCK_TIMEOUT)
-            except concurrent.futures.TimeoutError:
-                print(f"    ⏱ {sym} timed out after {STOCK_TIMEOUT}s — skipping")
-                skipped.append(sym.replace(".NS", ""))
-                errors += 1
-                continue
-            except Exception as e:
-                print(f"    ✗ {sym} error: {e}")
-                errors += 1
-                continue
-
-            if r is None:
-                errors += 1
-            else:
-                results.append(r)
-
-        if i + BATCH_SIZE < len(symbols):
-            time.sleep(BATCH_SLEEP)
-
-    if skipped:
-        print(f"\nTimed out stocks: {', '.join(skipped)}")
-    print(f"\nDone. Found {len(results)} stocks with active golden cross.")
-    print(f"Errors/no-data/no-cross: {errors}")
+if __name__ == '__main__':
+    stock_list = Path(__file__).parent / "nifty500.txt"
+    symbols = load_stock_list(stock_list)
+    results, errors = run_scan(symbols)
 
     # Write outputs
     out_dir = Path(__file__).parent
     md = generate_markdown(results, len(symbols), errors)
     (out_dir / "crossovers.md").write_text(md)
-    print(f"Wrote crossovers.md")
+    print(f"  Wrote crossovers.md")
 
     j = {
-        "updated": datetime.now(timezone(timedelta(hours=5, minutes=30))).isoformat(),
+        "updated": datetime.now(IST).isoformat(),
         "total_scanned": len(symbols),
         "golden_cross_count": len(results),
         "errors": errors,
         "stocks": results,
     }
     (out_dir / "crossovers.json").write_text(json.dumps(j, indent=2, default=str))
-    print(f"Wrote crossovers.json")
-
-    sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()
+    print(f"  Wrote crossovers.json")
