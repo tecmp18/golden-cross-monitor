@@ -1,0 +1,50 @@
+{
+  "updated": "2026-08-07T23:44:36.766039+05:30",
+  "market": {
+    "signal": "\u2713",
+    "note": "Nifty 500 above both SMAs \u2014 healthy"
+  },
+  "stocks": [
+    {
+      "symbol": "KAMDHENU",
+      "ns_symbol": "KAMDHENU.NS",
+      "status": "\ud83d\udd34 DEATH CROSS",
+      "ltp": 35.18,
+      "sma100": 26.9,
+      "sma350": 27.15,
+      "rsi": 62.27,
+      "adx": 37.79,
+      "plus_di": 21.87,
+      "minus_di": 12.29,
+      "extension_pct": 30.78,
+      "golden_cross": "False",
+      "rule_2_1": false,
+      "rule_2_2": true,
+      "alerts": [
+        "100 SMA < 350 SMA \u2014 full exit signal"
+      ],
+      "error": null
+    },
+    {
+      "symbol": "CGPOWER",
+      "ns_symbol": "CGPOWER.NS",
+      "status": "\ud83d\udfe2 HEALTHY",
+      "ltp": 879.0,
+      "sma100": 849.67,
+      "sma350": 726.64,
+      "rsi": 48.4,
+      "adx": 21.58,
+      "plus_di": 20.83,
+      "minus_di": 30.32,
+      "extension_pct": 3.45,
+      "golden_cross": "True",
+      "rule_2_1": false,
+      "rule_2_2": false,
+      "alerts": [
+        "ADX 21.58 < 28 \u2014 trend weakening",
+        "-DI > +DI \u2014 bearish directional bias"
+      ],
+      "error": null
+    }
+  ]
+}
