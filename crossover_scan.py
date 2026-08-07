@@ -9,12 +9,17 @@ Outputs to crossovers.md.
 import sys
 import json
 import time
+import logging
+import concurrent.futures
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
+
+# Suppress yfinance noise (404s, delisted warnings)
+logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 
 # ─── Configuration ───────────────────────────────────────────────────────────
@@ -27,6 +32,7 @@ HISTORY_DAYS = 500
 BATCH_SIZE = 10          # download tickers in batches to avoid rate limits
 BATCH_SLEEP = 2          # seconds between batches
 CROSS_LOOKBACK = 30      # flag crosses that happened within last N trading days
+STOCK_TIMEOUT = 30       # seconds before giving up on a single stock
 
 
 # ─── Indicator calculations (shared with scanner.py) ────────────────────────
@@ -239,6 +245,7 @@ def main():
 
     results = []
     errors = 0
+    skipped = []
 
     for i in range(0, len(symbols), BATCH_SIZE):
         batch = symbols[i : i + BATCH_SIZE]
@@ -247,7 +254,20 @@ def main():
         print(f"  Batch {batch_num}/{total_batches}: {', '.join(s.replace('.NS','') for s in batch)}")
 
         for sym in batch:
-            r = scan_stock(sym)
+            try:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(scan_stock, sym)
+                    r = future.result(timeout=STOCK_TIMEOUT)
+            except concurrent.futures.TimeoutError:
+                print(f"    ⏱ {sym} timed out after {STOCK_TIMEOUT}s — skipping")
+                skipped.append(sym.replace(".NS", ""))
+                errors += 1
+                continue
+            except Exception as e:
+                print(f"    ✗ {sym} error: {e}")
+                errors += 1
+                continue
+
             if r is None:
                 errors += 1
             else:
@@ -256,6 +276,8 @@ def main():
         if i + BATCH_SIZE < len(symbols):
             time.sleep(BATCH_SLEEP)
 
+    if skipped:
+        print(f"\nTimed out stocks: {', '.join(skipped)}")
     print(f"\nDone. Found {len(results)} stocks with active golden cross.")
     print(f"Errors/no-data/no-cross: {errors}")
 
