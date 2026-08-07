@@ -1,0 +1,38 @@
+name: Weekly Golden Crossover Scan (Nifty 500)
+
+on:
+  schedule:
+    # Runs every Saturday at 06:00 IST (00:30 UTC) — after weekly close
+    - cron: '30 0 * * 6'
+  workflow_dispatch:  # Manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # 500 stocks can take a while
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Nifty 500 crossover scan
+        run: python crossover_scan.py
+
+      - name: Commit results
+        run: |
+          git config user.name "golden-cross-bot"
+          git config user.email "bot@golden-cross-monitor"
+          git add crossovers.md crossovers.json
+          git diff --staged --quiet || git commit -m "crossover-scan: $(date -u '+%Y-%m-%d')"
+          git push
