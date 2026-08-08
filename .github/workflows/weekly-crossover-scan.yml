@@ -36,6 +36,7 @@ jobs:
           git config user.email "bot@golden-cross-monitor"
           git add crossovers.md crossovers.json
           git diff --staged --quiet || git commit -m "crossover-scan: $(date -u '+%Y-%m-%d')"
+          git pull --rebase origin main
           git push
 
       - name: Create issue for fresh crosses
