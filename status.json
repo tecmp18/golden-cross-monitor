@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-08T12:38:42.978397+05:30",
+  "updated": "2026-08-08T12:47:17.943497+05:30",
   "market": {
     "signal": "\u2713",
     "note": "Nifty 500 above both SMAs \u2014 healthy"
@@ -80,7 +80,7 @@
       "rule_2_1": false,
       "rule_2_2": false,
       "alerts": [],
-      "error": "Insufficient data (299 clean bars, need 360+)"
+      "error": "Insufficient data (298 clean bars, need 360+)"
     },
     {
       "symbol": "CANBK",
@@ -107,13 +107,13 @@
       "ns_symbol": "DALBHARAT.NS",
       "status": "\ud83d\udd34 DEATH CROSS",
       "ltp": 1822.5,
-      "sma100": 1806.93,
-      "sma350": 2007.89,
-      "rsi": 53.67,
-      "adx": 18.92,
-      "plus_di": 19.3,
-      "minus_di": 24.64,
-      "extension_pct": 0.86,
+      "sma100": 1807.83,
+      "sma350": 2007.56,
+      "rsi": 53.54,
+      "adx": 20.24,
+      "plus_di": 17.86,
+      "minus_di": 25.87,
+      "extension_pct": 0.81,
       "golden_cross": "False",
       "rule_2_1": false,
       "rule_2_2": true,
@@ -363,20 +363,20 @@
       "rule_2_1": false,
       "rule_2_2": false,
       "alerts": [],
-      "error": "Insufficient data (189 clean bars, need 360+)"
+      "error": "Insufficient data (188 clean bars, need 360+)"
     },
     {
       "symbol": "RBA",
       "ns_symbol": "RBA.NS",
       "status": "\ud83d\udd34 DEATH CROSS",
       "ltp": 94.92,
-      "sma100": 68.42,
+      "sma100": 68.37,
       "sma350": 71.48,
-      "rsi": 83.45,
-      "adx": 34.58,
-      "plus_di": 52.63,
-      "minus_di": 9.25,
-      "extension_pct": 38.73,
+      "rsi": 83.09,
+      "adx": 35.43,
+      "plus_di": 53.92,
+      "minus_di": 10.07,
+      "extension_pct": 38.83,
       "golden_cross": "False",
       "rule_2_1": false,
       "rule_2_2": true,
@@ -468,18 +468,18 @@
       "ns_symbol": "TVSMOTOR.NS",
       "status": "\ud83d\udfe1 EXTENDED",
       "ltp": 4440.9,
-      "sma100": 3601.87,
-      "sma350": 3325.5,
-      "rsi": 76.6,
-      "adx": 38.95,
-      "plus_di": 44.17,
-      "minus_di": 8.63,
-      "extension_pct": 23.29,
+      "sma100": 3592.37,
+      "sma350": 3319.66,
+      "rsi": 76.81,
+      "adx": 37.07,
+      "plus_di": 45.62,
+      "minus_di": 9.04,
+      "extension_pct": 23.62,
       "golden_cross": "True",
       "rule_2_1": false,
       "rule_2_2": false,
       "alerts": [
-        "Price 23.29% above 100 SMA (>15.0% limit)"
+        "Price 23.62% above 100 SMA (>15.0% limit)"
       ],
       "error": null
     },
@@ -499,7 +499,7 @@
       "rule_2_1": false,
       "rule_2_2": false,
       "alerts": [],
-      "error": "Insufficient data (331 clean bars, need 360+)"
+      "error": "Insufficient data (330 clean bars, need 360+)"
     },
     {
       "symbol": "YESBANK",
