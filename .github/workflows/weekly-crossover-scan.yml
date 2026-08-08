@@ -8,11 +8,12 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 500 stocks can take a while
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repo
@@ -36,3 +37,44 @@ jobs:
           git add crossovers.md crossovers.json
           git diff --staged --quiet || git commit -m "crossover-scan: $(date -u '+%Y-%m-%d')"
           git push
+
+      - name: Create issue for fresh crosses
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Parse crossovers.json for fresh golden crosses
+          FRESH=$(python3 -c "
+          import json
+          data = json.load(open('crossovers.json'))
+          fresh = [s for s in data['stocks'] if s.get('freshness', '').startswith('🆕')]
+          if not fresh:
+              exit(0)
+          lines = []
+          for f in fresh:
+              di = '✓' if f['di_bullish'] else '✗'
+              pa = '✓' if f['price_above_both'] else '✗'
+              lines.append(f\"| {f['symbol']} | ₹{f['ltp']} | ₹{f['sma100']} | ₹{f['sma350']} | {f['cross_date']} | {f['rsi']} | {f['adx']} | {di} | {pa} |\")
+          table = '| Symbol | LTP | SMA 100 | SMA 350 | Cross Date | RSI | ADX | +DI>-DI | Price>SMAs |\n|--------|-----|---------|---------|------------|-----|-----|---------|------------|\n' + '\n'.join(lines)
+          print(table)
+          ")
+
+          if [ -n "$FRESH" ]; then
+            DATE=$(date -u '+%Y-%m-%d')
+            COUNT=$(echo "$FRESH" | grep -c '|')
+            TOTAL=$(python3 -c "import json; d=json.load(open('crossovers.json')); print(d['golden_cross_count'])")
+            BODY=$(cat <<EOF
+          ## 🆕 Fresh golden crosses — $DATE
+
+          $FRESH
+
+          ---
+          **Total active golden crosses:** $TOTAL
+
+          [Full report →](../blob/main/crossovers.md)
+          EOF
+          )
+            gh issue create \
+              --title "🆕 $COUNT fresh golden cross(es) — $DATE" \
+              --body "$BODY" \
+              --label "crossover"
+          fi
