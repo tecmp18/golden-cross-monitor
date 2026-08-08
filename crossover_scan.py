@@ -83,7 +83,9 @@ def analyze_stock(symbol):
             return None
 
         # Compute indicators
+        df['SMA_50'] = df['Close'].rolling(window=50).mean()
         df['SMA_100'] = df['Close'].rolling(window=SMA_FAST).mean()
+        df['SMA_200'] = df['Close'].rolling(window=200).mean()
         df['SMA_350'] = df['Close'].rolling(window=SMA_SLOW).mean()
         df['RSI'] = calc_rsi(df['Close'], RSI_PERIOD)
         df['ADX'], df['Plus_DI'], df['Minus_DI'] = calc_adx(
@@ -111,6 +113,11 @@ def analyze_stock(symbol):
         ext_pct = round(((close - sma100) / sma100) * 100, 2)
         price_above_both = close > sma100 and close > sma350
 
+        # Classic 50/200 golden cross
+        sma50 = latest.get('SMA_50')
+        sma200 = latest.get('SMA_200')
+        classic_gc = (not pd.isna(sma50) and not pd.isna(sma200) and sma50 > sma200)
+
         # Find when the golden cross happened
         cross_diff = df['SMA_100'] - df['SMA_350']
         cross_sign = np.sign(cross_diff)
@@ -132,6 +139,7 @@ def analyze_stock(symbol):
             "ltp": round(close, 2),
             "sma100": round(sma100, 2),
             "sma350": round(sma350, 2),
+            "classic_gc": classic_gc,
             "rsi": round(rsi_val, 2),
             "adx": round(adx_val, 2),
             "plus_di": round(pdi, 2),
@@ -223,14 +231,15 @@ def generate_markdown(results, total_scanned, errors):
     if fresh:
         lines.append(f"## 🆕 Fresh Golden Crosses (last {CROSS_LOOKBACK} trading days)")
         lines.append("")
-        lines.append("| Symbol | LTP | SMA 100 | SMA 350 | Cross Date | Age | RSI | ADX | +DI>-DI | Ext% | Price>SMAs |")
-        lines.append("|--------|-----|---------|---------|------------|-----|-----|-----|---------|------|-----------|")
+        lines.append("| Symbol | LTP | SMA 100 | SMA 350 | 50/200 | Cross Date | Age | RSI | ADX | +DI>-DI | Ext% | Price>SMAs |")
+        lines.append("|--------|-----|---------|---------|--------|------------|-----|-----|-----|---------|------|-----------|")
         for r in fresh:
             di_flag = "✓" if r["di_bullish"] else "✗"
             pa_flag = "✓" if r["price_above_both"] else "✗"
+            gc50 = "✓" if r.get("classic_gc") else "✗"
             lines.append(
                 f"| {r['symbol']} | ₹{r['ltp']} | ₹{r['sma100']} | ₹{r['sma350']} "
-                f"| {r['cross_date']} | {r['cross_age_days']}d "
+                f"| {gc50} | {r['cross_date']} | {r['cross_age_days']}d "
                 f"| {r['rsi']} | {r['adx']} | {di_flag} | {r['extension_pct']}% | {pa_flag} |"
             )
         lines.append("")
@@ -239,17 +248,18 @@ def generate_markdown(results, total_scanned, errors):
 
     lines.append("## All Active Golden Crosses")
     lines.append("")
-    lines.append("| Symbol | LTP | SMA 100 | SMA 350 | Cross Date | Age | RSI | ADX | +DI>-DI | Ext% | Price>SMAs |")
-    lines.append("|--------|-----|---------|---------|------------|-----|-----|-----|---------|------|-----------|")
+    lines.append("| Symbol | LTP | SMA 100 | SMA 350 | 50/200 | Cross Date | Age | RSI | ADX | +DI>-DI | Ext% | Price>SMAs |")
+    lines.append("|--------|-----|---------|---------|--------|------------|-----|-----|-----|---------|------|-----------|")
 
     for r in results:
         di_flag = "✓" if r["di_bullish"] else "✗"
         pa_flag = "✓" if r["price_above_both"] else "✗"
+        gc50 = "✓" if r.get("classic_gc") else "✗"
         age_str = f"{r['cross_age_days']}d" if r["cross_age_days"] is not None else "—"
         cross_str = r["cross_date"] or "—"
         lines.append(
             f"| {r['symbol']} | ₹{r['ltp']} | ₹{r['sma100']} | ₹{r['sma350']} "
-            f"| {cross_str} | {age_str} "
+            f"| {gc50} | {cross_str} | {age_str} "
             f"| {r['rsi']} | {r['adx']} | {di_flag} | {r['extension_pct']}% | {pa_flag} |"
         )
 
