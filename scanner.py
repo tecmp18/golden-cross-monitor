@@ -2,11 +2,11 @@
 """
 Golden Cross Monitor — Daily Watchlist Health Check
 =====================================================
-Checks whether the dual golden cross (100/350 + 50/200) is intact.
+Checks dual golden cross health (100/350 + 50/200) for watchlist stocks.
 Simple 3-state system for long-term holds:
   🟢 HEALTHY  — both 100>350 AND 50>200 active
-  🟡 CAUTION  — only 100>350 active, 50/200 broken
-  🔴 EXIT     — 100<350 death cross
+  🟡 CAUTION  — either cross broken (one of the two)
+  🔴 EXIT     — both 100<350 AND 50<200 broken
 Outputs to status.md and status.json.
 """
 
