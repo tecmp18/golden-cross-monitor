@@ -8,12 +8,17 @@ Outputs to status.md for GitHub-native monitoring.
 
 import sys
 import json
+import logging
+import concurrent.futures
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
+
+# Suppress yfinance noise (404s, delisted warnings)
+logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 
 # ─── Configuration ───────────────────────────────────────────────────────────
@@ -71,8 +76,11 @@ def scan_stock(symbol: str) -> dict:
         "ns_symbol": symbol,
         "status": "ERROR",
         "ltp": None,
+        "sma50": None,
         "sma100": None,
+        "sma200": None,
         "sma350": None,
+        "classic_gc": None,
         "rsi": None,
         "adx": None,
         "plus_di": None,
@@ -102,6 +110,8 @@ def scan_stock(symbol: str) -> dict:
 
         sma100 = calc_sma(close, SMA_FAST)
         sma350 = calc_sma(close, SMA_SLOW)
+        sma50 = calc_sma(close, 50)
+        sma200 = calc_sma(close, 200)
         rsi = calc_rsi(close, RSI_PERIOD)
         adx, plus_di, minus_di = calc_adx(high, low, close, ADX_PERIOD)
 
@@ -115,7 +125,9 @@ def scan_stock(symbol: str) -> dict:
             return result
 
         ltp = round(ltp, 2)
+        s50 = round(sma50.iloc[-1], 2) if not pd.isna(sma50.iloc[-1]) else None
         s100 = round(s100_raw, 2)
+        s200 = round(sma200.iloc[-1], 2) if not pd.isna(sma200.iloc[-1]) else None
         s350 = round(s350_raw, 2)
         rsi_val = round(rsi.iloc[-1], 2) if not pd.isna(rsi.iloc[-1]) else 0.0
         adx_val = round(adx.iloc[-1], 2) if not pd.isna(adx.iloc[-1]) else 0.0
@@ -123,12 +135,18 @@ def scan_stock(symbol: str) -> dict:
         mdi = round(minus_di.iloc[-1], 2) if not pd.isna(minus_di.iloc[-1]) else 0.0
 
         result["ltp"] = ltp
+        result["sma50"] = s50
         result["sma100"] = s100
+        result["sma200"] = s200
         result["sma350"] = s350
         result["rsi"] = rsi_val
         result["adx"] = adx_val
         result["plus_di"] = pdi
         result["minus_di"] = mdi
+
+        # Classic 50/200 golden cross
+        classic_gc = (s50 is not None and s200 is not None and s50 > s200)
+        result["classic_gc"] = classic_gc
 
         # Golden cross check
         golden = s100 > s350
@@ -176,6 +194,8 @@ def scan_stock(symbol: str) -> dict:
             result["status"] = "🟢 HEALTHY"
 
         # Additional diagnostics
+        if not classic_gc:
+            result["alerts"].append("50/200 cross not active — weaker confirmation")
         if adx_val < 28:
             result["alerts"].append(f"ADX {adx_val} < 28 — trend weakening")
         if mdi > pdi:
@@ -234,18 +254,19 @@ def generate_markdown(results: list, market: dict) -> str:
     # Summary table for all stocks
     lines.append("## Full Scan")
     lines.append("")
-    lines.append("| Symbol | Status | LTP | SMA 100 | SMA 350 | RSI | ADX | Ext% | Alerts |")
-    lines.append("|--------|--------|-----|---------|---------|-----|-----|------|--------|")
+    lines.append("| Symbol | Status | LTP | SMA 100 | SMA 350 | 50/200 | RSI | ADX | Ext% | Alerts |")
+    lines.append("|--------|--------|-----|---------|---------|--------|-----|-----|------|--------|")
 
     for r in results:
         if r["status"] == "ERROR":
-            lines.append(f"| {r['symbol']} | ❌ ERROR | — | — | — | — | — | — | {r['error']} |")
+            lines.append(f"| {r['symbol']} | ❌ ERROR | — | — | — | — | — | — | — | {r['error']} |")
             continue
         alert_str = "; ".join(r["alerts"]) if r["alerts"] else "—"
+        gc50 = "✓" if r.get("classic_gc") else "✗"
         lines.append(
             f"| {r['symbol']} | {r['status']} | ₹{r['ltp']} "
             f"| ₹{r['sma100']} | ₹{r['sma350']} "
-            f"| {r['rsi']} | {r['adx']} | {r['extension_pct']}% "
+            f"| {gc50} | {r['rsi']} | {r['adx']} | {r['extension_pct']}% "
             f"| {alert_str} |"
         )
 
@@ -307,7 +328,28 @@ def main():
         results = []
         for sym in symbols:
             print(f"  Scanning {sym}...", end=" ", flush=True)
-            r = scan_stock(sym)
+            try:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(scan_stock, sym)
+                    r = future.result(timeout=30)
+            except concurrent.futures.TimeoutError:
+                r = {
+                    "symbol": sym.replace(".NS", ""), "ns_symbol": sym,
+                    "status": "ERROR", "ltp": None, "sma100": None, "sma350": None,
+                    "rsi": None, "adx": None, "plus_di": None, "minus_di": None,
+                    "extension_pct": None, "golden_cross": None,
+                    "rule_2_1": False, "rule_2_2": False,
+                    "alerts": [], "error": f"Timed out after 30s",
+                }
+            except Exception as e:
+                r = {
+                    "symbol": sym.replace(".NS", ""), "ns_symbol": sym,
+                    "status": "ERROR", "ltp": None, "sma100": None, "sma350": None,
+                    "rsi": None, "adx": None, "plus_di": None, "minus_di": None,
+                    "extension_pct": None, "golden_cross": None,
+                    "rule_2_1": False, "rule_2_2": False,
+                    "alerts": [], "error": str(e),
+                }
             print(r["status"])
             results.append(r)
 
