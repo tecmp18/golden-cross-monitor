@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   scan:
@@ -33,6 +34,41 @@ jobs:
           git config user.name "golden-cross-bot"
           git config user.email "bot@golden-cross-monitor"
           git add status.md status.json
-          # Only commit if there are changes
           git diff --staged --quiet || git commit -m "scan: $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
+
+      - name: Create alert issue if needed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Parse status.json for action-required signals
+          ALERTS=$(python3 -c "
+          import json
+          data = json.load(open('status.json'))
+          alerts = [s for s in data['stocks'] if s.get('rule_2_1') or s.get('rule_2_2')]
+          if not alerts:
+              exit(0)
+          lines = []
+          for a in alerts:
+              lines.append(f\"| {a['symbol']} | {a['status']} | ₹{a['ltp']} | ₹{a['sma100']} | ₹{a['sma350']} | {a['rsi']} |\")
+          table = '| Symbol | Status | LTP | SMA 100 | SMA 350 | RSI |\n|--------|--------|-----|---------|---------|-----|\n' + '\n'.join(lines)
+          print(table)
+          ")
+
+          # Only create issue if there are alerts
+          if [ -n "$ALERTS" ]; then
+            DATE=$(date -u '+%Y-%m-%d')
+            BODY=$(cat <<EOF
+          ## ⚠️ Action required — $DATE
+
+          $ALERTS
+
+          ---
+          [Full report →](../blob/main/status.md)
+          EOF
+          )
+            gh issue create \
+              --title "🚨 Alert: $(echo "$ALERTS" | grep -c '|') signal(s) — $DATE" \
+              --body "$BODY" \
+              --label "alert"
+          fi
