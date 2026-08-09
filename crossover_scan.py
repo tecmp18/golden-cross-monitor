@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """
-Nifty 500 Golden Crossover Scanner
-===================================
-Scans all stocks in nifty500.txt for active golden crosses (100 SMA > 350 SMA).
-Highlights fresh crosses (within last 30 trading days).
-Designed to run weekly via GitHub Actions.
-Outputs to crossovers.md and crossovers.json.
+Nifty 500 — Two-Stage Golden Cross Scanner
+============================================
+Scans for stocks entering the two-stage scaling system with SMA direction filters:
+
+ENTRY:
+  Stage 1 (50%) — Price > 50 > 200, 200 < 350, 50 SMA rising
+  Stage 2 (100%) — Price > 50 > 200 > 350, 50 & 200 SMA rising
+
+SMA Direction:
+  50 SMA rising  → current > 5 trading days ago
+  200 SMA rising → current > 20 trading days ago
+  350 SMA rising → current > 20 trading days ago
 """
 
 import sys
@@ -22,48 +28,25 @@ import yfinance as yf
 # ─────────────────────────────────────────────
 # PARAMETERS
 # ─────────────────────────────────────────────
-SMA_FAST = 100
-SMA_SLOW = 350
-RSI_PERIOD = 14
-ADX_PERIOD = 14
-DATA_PERIOD = "2y"          # same as turtle scanner
-CROSS_LOOKBACK = 30         # flag crosses within last N trading days
+DATA_PERIOD = "2y"
+CROSS_LOOKBACK = 30
 
 IST = ZoneInfo("Asia/Kolkata")
 
 
 # ─────────────────────────────────────────────
-# INDICATOR CALCULATIONS
+# SMA DIRECTION
 # ─────────────────────────────────────────────
 
-def calc_rsi(close, period=14):
-    delta = close.diff()
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
-    avg_gain = gain.ewm(com=period - 1, min_periods=period).mean()
-    avg_loss = loss.ewm(com=period - 1, min_periods=period).mean()
-    rs = avg_gain / avg_loss
-    return 100 - (100 / (1 + rs))
-
-
-def calc_adx(high, low, close, period=14):
-    plus_dm = high.diff()
-    minus_dm = -low.diff()
-    plus_dm = plus_dm.where((plus_dm > minus_dm) & (plus_dm > 0), 0.0)
-    minus_dm = minus_dm.where((minus_dm > plus_dm) & (minus_dm > 0), 0.0)
-
-    tr1 = high - low
-    tr2 = (high - close.shift(1)).abs()
-    tr3 = (low - close.shift(1)).abs()
-    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
-
-    atr = tr.ewm(alpha=1 / period, min_periods=period).mean()
-    plus_di = 100 * (plus_dm.ewm(alpha=1 / period, min_periods=period).mean() / atr)
-    minus_di = 100 * (minus_dm.ewm(alpha=1 / period, min_periods=period).mean() / atr)
-
-    dx = 100 * ((plus_di - minus_di).abs() / (plus_di + minus_di))
-    adx = dx.ewm(alpha=1 / period, min_periods=period).mean()
-    return adx, plus_di, minus_di
+def sma_rising(sma_series, lookback):
+    """Check if SMA is rising: current value > value `lookback` bars ago."""
+    if len(sma_series) <= lookback:
+        return False
+    current = sma_series.iloc[-1]
+    past = sma_series.iloc[-1 - lookback]
+    if pd.isna(current) or pd.isna(past):
+        return False
+    return current > past
 
 
 # ─────────────────────────────────────────────
@@ -71,85 +54,125 @@ def calc_adx(high, low, close, period=14):
 # ─────────────────────────────────────────────
 
 def analyze_stock(symbol):
-    """
-    Check if a stock has an active golden cross.
-    Returns dict with signal details, or None.
-    """
     try:
         ticker = yf.Ticker(symbol)
         df = ticker.history(period=DATA_PERIOD)
 
-        if df.empty or len(df) < SMA_SLOW + 10:
+        if df.empty or len(df) < 360:
             return None
 
-        # Compute indicators
         df['SMA_50'] = df['Close'].rolling(window=50).mean()
-        df['SMA_100'] = df['Close'].rolling(window=SMA_FAST).mean()
         df['SMA_200'] = df['Close'].rolling(window=200).mean()
-        df['SMA_350'] = df['Close'].rolling(window=SMA_SLOW).mean()
-        df['RSI'] = calc_rsi(df['Close'], RSI_PERIOD)
-        df['ADX'], df['Plus_DI'], df['Minus_DI'] = calc_adx(
-            df['High'], df['Low'], df['Close'], ADX_PERIOD
-        )
+        df['SMA_350'] = df['Close'].rolling(window=350).mean()
 
-        # Drop rows where indicators aren't ready
-        df = df.dropna(subset=['SMA_100', 'SMA_350', 'RSI', 'ADX'])
-        if len(df) < 2:
+        df = df.dropna(subset=['SMA_50', 'SMA_200', 'SMA_350'])
+        if len(df) < 21:
             return None
 
         latest = df.iloc[-1]
         close = latest['Close']
-        sma100 = latest['SMA_100']
+        sma50 = latest['SMA_50']
+        sma200 = latest['SMA_200']
         sma350 = latest['SMA_350']
 
-        # Only interested in golden cross (100 > 350)
-        if sma100 <= sma350:
+        # ── Cross checks ────────────────────────────────────────
+        price_above_50 = close > sma50
+        gc_50_200 = sma50 > sma200
+        gc_200_350 = sma200 > sma350
+
+        # ── SMA direction ───────────────────────────────────────
+        r50 = sma_rising(df['SMA_50'], 5)
+        r200 = sma_rising(df['SMA_200'], 20)
+        r350 = sma_rising(df['SMA_350'], 20)
+
+        # ── Stage classification ────────────────────────────────
+        # Must have at minimum: Price > 50 > 200
+        if not (price_above_50 and gc_50_200):
             return None
 
-        rsi_val = latest['RSI']
-        adx_val = latest['ADX']
-        pdi = latest['Plus_DI']
-        mdi = latest['Minus_DI']
-        ext_pct = round(((close - sma100) / sma100) * 100, 2)
-        price_above_both = close > sma100 and close > sma350
+        if gc_200_350:
+            # Fully stacked — check if qualifies for Stage 2
+            if r50 and r200:
+                stage = "Stage 2"
+                stage_label = "🟢 STAGE 2 — Full position (100%)"
+            else:
+                stage = "Hold"
+                stage_label = "🟢 HOLD BOTH — stacked but SMAs not all rising"
+        else:
+            # 200 < 350 — check if qualifies for Stage 1
+            if r50:
+                stage = "Stage 1"
+                stage_label = "🟡 STAGE 1 — Half position (50%)"
+            else:
+                stage = "Wait"
+                stage_label = "⚪ WAIT — 50 SMA not rising"
 
-        # Classic 50/200 golden cross
-        sma50 = latest.get('SMA_50')
-        sma200 = latest.get('SMA_200')
-        classic_gc = (not pd.isna(sma50) and not pd.isna(sma200) and sma50 > sma200)
+        # ── Cross dates / freshness ─────────────────────────────
+        cross_50_200 = df['SMA_50'] - df['SMA_200']
+        sign_50_200 = np.sign(cross_50_200)
+        changes_50_200 = sign_50_200.diff().fillna(0)
+        gc_events_50_200 = changes_50_200[changes_50_200 == 2]
 
-        # Find when the golden cross happened
-        cross_diff = df['SMA_100'] - df['SMA_350']
-        cross_sign = np.sign(cross_diff)
-        cross_changes = cross_sign.diff().fillna(0)
-        golden_crosses = cross_changes[cross_changes == 2]
+        t1_cross_date = None
+        t1_cross_age = None
+        t1_fresh = False
+        if not gc_events_50_200.empty:
+            last_gc = gc_events_50_200.index[-1]
+            t1_cross_age = (df.index[-1] - last_gc).days
+            t1_cross_date = last_gc.strftime("%Y-%m-%d")
+            if t1_cross_age <= CROSS_LOOKBACK:
+                t1_fresh = True
 
-        cross_age = None
-        cross_date = None
-        freshness = "Established"
-        if not golden_crosses.empty:
-            last_gc = golden_crosses.index[-1]
-            cross_age = (df.index[-1] - last_gc).days
-            cross_date = last_gc.strftime("%Y-%m-%d")
-            if cross_age <= CROSS_LOOKBACK:
-                freshness = "🆕 Fresh"
+        t2_cross_date = None
+        t2_cross_age = None
+        t2_fresh = False
+        if gc_200_350:
+            cross_200_350 = df['SMA_200'] - df['SMA_350']
+            sign_200_350 = np.sign(cross_200_350)
+            changes_200_350 = sign_200_350.diff().fillna(0)
+            gc_events_200_350 = changes_200_350[changes_200_350 == 2]
+
+            if not gc_events_200_350.empty:
+                last_gc = gc_events_200_350.index[-1]
+                t2_cross_age = (df.index[-1] - last_gc).days
+                t2_cross_date = last_gc.strftime("%Y-%m-%d")
+                if t2_cross_age <= CROSS_LOOKBACK:
+                    t2_fresh = True
+
+        # Freshness label
+        if stage == "Stage 2" and t2_fresh:
+            freshness = "🆕 Fresh T2"
+        elif stage == "Stage 1" and t1_fresh:
+            freshness = "🆕 Fresh T1"
+        else:
+            freshness = "Established"
+
+        # Gap metrics
+        gap_50_200 = round(((sma50 - sma200) / sma200) * 100, 2)
+        gap_200_350 = round(((sma200 - sma350) / sma350) * 100, 2) if gc_200_350 else None
+        price_vs_50 = round(((close - sma50) / sma50) * 100, 2)
 
         return {
             "symbol": symbol.replace(".NS", ""),
-            "ltp": round(close, 2),
-            "sma100": round(sma100, 2),
-            "sma350": round(sma350, 2),
-            "classic_gc": classic_gc,
-            "rsi": round(rsi_val, 2),
-            "adx": round(adx_val, 2),
-            "plus_di": round(pdi, 2),
-            "minus_di": round(mdi, 2),
-            "extension_pct": ext_pct,
-            "cross_date": cross_date,
-            "cross_age_days": cross_age,
+            "stage": stage,
+            "stage_label": stage_label,
             "freshness": freshness,
-            "price_above_both": price_above_both,
-            "di_bullish": pdi > mdi,
+            "ltp": round(close, 2),
+            "sma50": round(sma50, 2),
+            "sma200": round(sma200, 2),
+            "sma350": round(sma350, 2),
+            "sma50_rising": r50,
+            "sma200_rising": r200,
+            "sma350_rising": r350,
+            "price_vs_50_pct": price_vs_50,
+            "gap_50_200_pct": gap_50_200,
+            "gap_200_350_pct": gap_200_350,
+            "t1_cross_date": t1_cross_date,
+            "t1_cross_age": t1_cross_age,
+            "t2_cross_date": t2_cross_date,
+            "t2_cross_age": t2_cross_age,
+            "t1_fresh": t1_fresh,
+            "t2_fresh": t2_fresh,
         }
 
     except Exception as e:
@@ -158,16 +181,14 @@ def analyze_stock(symbol):
 
 
 # ─────────────────────────────────────────────
-# SCANNER (matches turtle scanner pattern)
+# SCANNER
 # ─────────────────────────────────────────────
 
 def load_stock_list(filepath):
-    """Load stock symbols from file, one per line."""
     path = Path(filepath)
     if not path.exists():
         print(f"✗ Stock list not found: {filepath}")
         sys.exit(1)
-
     symbols = [line.strip() for line in path.read_text().splitlines()
                if line.strip() and not line.strip().startswith('#')]
     symbols = [s if s.endswith('.NS') else s + '.NS' for s in symbols]
@@ -175,14 +196,14 @@ def load_stock_list(filepath):
 
 
 def run_scan(symbols):
-    """Scan all symbols for golden crosses. Returns list of signal dicts."""
     results = []
     errors = 0
     total = len(symbols)
 
     print(f"\n{'='*60}")
-    print(f"  GOLDEN CROSSOVER SCANNER")
-    print(f"  SMA {SMA_FAST} > SMA {SMA_SLOW} | Fresh window: {CROSS_LOOKBACK}d")
+    print(f"  TWO-STAGE GOLDEN CROSS SCANNER")
+    print(f"  Stage 1: Price > 50↑ > 200, 200 < 350  (50%)")
+    print(f"  Stage 2: Price > 50↑ > 200↑ > 350      (100%)")
     print(f"  Scanning {total} stocks")
     print(f"  {datetime.now(IST).strftime('%Y-%m-%d %H:%M IST')}")
     print(f"{'='*60}\n")
@@ -195,8 +216,13 @@ def run_scan(symbols):
         else:
             errors += 1
 
-    print(f"\n\n  ✓ Scan complete. {len(results)} golden cross(es) found.")
-    print(f"  ✗ Errors/no-data/no-cross: {errors}\n")
+    s1 = [r for r in results if r["stage"] == "Stage 1"]
+    s2 = [r for r in results if r["stage"] == "Stage 2"]
+    hold = [r for r in results if r["stage"] == "Hold"]
+    wait = [r for r in results if r["stage"] == "Wait"]
+    print(f"\n\n  ✓ Scan complete.")
+    print(f"  Stage 2: {len(s2)} | Stage 1: {len(s1)} | Hold: {len(hold)} | Wait: {len(wait)}")
+    print(f"  Errors/no-data/no-qualify: {errors}\n")
     return results, errors
 
 
@@ -204,66 +230,159 @@ def run_scan(symbols):
 # OUTPUT
 # ─────────────────────────────────────────────
 
+def _direction(val):
+    return "↑" if val else "↓"
+
+
+def _table_row(r, show_t2=False):
+    d50 = _direction(r['sma50_rising'])
+    d200 = _direction(r['sma200_rising'])
+    d350 = _direction(r['sma350_rising'])
+    t1_age = f"{r['t1_cross_age']}d" if r['t1_cross_age'] is not None else "—"
+    t1_date = r['t1_cross_date'] or "—"
+
+    base = (f"| {r['symbol']} | ₹{r['ltp']} "
+            f"| ₹{r['sma50']} {d50} | ₹{r['sma200']} {d200} | ₹{r['sma350']} {d350} "
+            f"| {t1_date} | {t1_age}")
+
+    if show_t2:
+        t2_date = r['t2_cross_date'] or "—"
+        t2_age = f"{r['t2_cross_age']}d" if r['t2_cross_age'] is not None else "—"
+        base += f" | {t2_date} | {t2_age}"
+
+    gap_200_350 = f"{r['gap_200_350_pct']}%" if r['gap_200_350_pct'] is not None else "—"
+    base += f" | {r['gap_50_200_pct']}% | {gap_200_350} |"
+    return base
+
+
 def generate_markdown(results, total_scanned, errors):
     now = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
 
-    # Sort: fresh crosses first, then by cross age (newest first)
-    results.sort(key=lambda r: (
-        0 if r["freshness"].startswith("🆕") else 1,
-        r["cross_age_days"] if r["cross_age_days"] is not None else 9999,
-    ))
+    s1 = [r for r in results if r["stage"] == "Stage 1"]
+    s2 = [r for r in results if r["stage"] == "Stage 2"]
+    hold = [r for r in results if r["stage"] == "Hold"]
+    wait = [r for r in results if r["stage"] == "Wait"]
 
-    fresh = [r for r in results if r["freshness"].startswith("🆕")]
+    fresh_t1 = [r for r in results if r["t1_fresh"] and r["stage"] == "Stage 1"]
+    fresh_t2 = [r for r in results if r["t2_fresh"] and r["stage"] == "Stage 2"]
+
+    s1.sort(key=lambda r: (0 if r["t1_fresh"] else 1, r["t1_cross_age"] or 9999))
+    s2.sort(key=lambda r: (0 if r["t2_fresh"] else 1, r["t2_cross_age"] or 9999))
 
     lines = [
-        "# Nifty 500 — Golden Crossover Scan",
+        "# Two-Stage Golden Cross Scanner",
         "",
         f"**Last updated:** {now}",
-        f"**Scanned:** {total_scanned} stocks | "
-        f"**Golden cross active:** {len(results)} | "
-        f"**Fresh ({CROSS_LOOKBACK}d):** {len(fresh)} | "
-        f"**Errors/skipped:** {errors}",
+        f"**Scanned:** {total_scanned} | "
+        f"**Stage 2:** {len(s2)} | "
+        f"**Stage 1:** {len(s1)} | "
+        f"**Hold:** {len(hold)} | "
+        f"**Wait:** {len(wait)} | "
+        f"**Fresh T1:** {len(fresh_t1)} | "
+        f"**Fresh T2:** {len(fresh_t2)} | "
+        f"**Skipped:** {errors}",
+        "",
+        "↑ = SMA rising (50: 5d, 200/350: 20d) · ↓ = SMA falling",
         "",
         "---",
         "",
     ]
 
-    if fresh:
-        lines.append(f"## 🆕 Fresh Golden Crosses (last {CROSS_LOOKBACK} trading days)")
+    # ── Fresh entries ───────────────────────────────────────
+    if fresh_t1 or fresh_t2:
+        lines.append(f"## 🆕 Fresh Entries (last {CROSS_LOOKBACK} trading days)")
         lines.append("")
-        lines.append("| Symbol | LTP | SMA 100 | SMA 350 | 50/200 | Cross Date | Age | RSI | ADX | +DI>-DI | Ext% | Price>SMAs |")
-        lines.append("|--------|-----|---------|---------|--------|------------|-----|-----|-----|---------|------|-----------|")
-        for r in fresh:
-            di_flag = "✓" if r["di_bullish"] else "✗"
-            pa_flag = "✓" if r["price_above_both"] else "✗"
-            gc50 = "✓" if r.get("classic_gc") else "✗"
-            lines.append(
-                f"| {r['symbol']} | ₹{r['ltp']} | ₹{r['sma100']} | ₹{r['sma350']} "
-                f"| {gc50} | {r['cross_date']} | {r['cross_age_days']}d "
-                f"| {r['rsi']} | {r['adx']} | {di_flag} | {r['extension_pct']}% | {pa_flag} |"
-            )
-        lines.append("")
+
+        if fresh_t2:
+            lines.append("### Add Tranche 2 — 200 just crossed above 350")
+            lines.append("")
+            lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | T2 Cross | T2 Age | 50/200 Gap | 200/350 Gap |")
+            lines.append("|--------|-----|--------|---------|---------|----------|--------|----------|--------|------------|-------------|")
+            for r in fresh_t2:
+                lines.append(_table_row(r, show_t2=True))
+            lines.append("")
+
+        if fresh_t1:
+            lines.append("### Buy Tranche 1 — 50 just crossed above 200")
+            lines.append("")
+            lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | 50/200 Gap | 200/350 Gap |")
+            lines.append("|--------|-----|--------|---------|---------|----------|--------|------------|-------------|")
+            for r in fresh_t1:
+                lines.append(_table_row(r, show_t2=False))
+            lines.append("")
+
         lines.append("---")
         lines.append("")
 
-    lines.append("## All Active Golden Crosses")
+    # ── Stage 2 ─────────────────────────────────────────────
+    lines.append("## 🟢 Stage 2 — Full Position (Price > 50↑ > 200↑ > 350)")
     lines.append("")
-    lines.append("| Symbol | LTP | SMA 100 | SMA 350 | 50/200 | Cross Date | Age | RSI | ADX | +DI>-DI | Ext% | Price>SMAs |")
-    lines.append("|--------|-----|---------|---------|--------|------------|-----|-----|-----|---------|------|-----------|")
-
-    for r in results:
-        di_flag = "✓" if r["di_bullish"] else "✗"
-        pa_flag = "✓" if r["price_above_both"] else "✗"
-        gc50 = "✓" if r.get("classic_gc") else "✗"
-        age_str = f"{r['cross_age_days']}d" if r["cross_age_days"] is not None else "—"
-        cross_str = r["cross_date"] or "—"
-        lines.append(
-            f"| {r['symbol']} | ₹{r['ltp']} | ₹{r['sma100']} | ₹{r['sma350']} "
-            f"| {gc50} | {cross_str} | {age_str} "
-            f"| {r['rsi']} | {r['adx']} | {di_flag} | {r['extension_pct']}% | {pa_flag} |"
-        )
-
+    if s2:
+        lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | T2 Cross | T2 Age | 50/200 Gap | 200/350 Gap |")
+        lines.append("|--------|-----|--------|---------|---------|----------|--------|----------|--------|------------|-------------|")
+        for r in s2:
+            lines.append(_table_row(r, show_t2=True))
+    else:
+        lines.append("*No stocks in Stage 2*")
     lines.append("")
+
+    # ── Stage 1 ─────────────────────────────────────────────
+    lines.append("## 🟡 Stage 1 — Half Position (Price > 50↑ > 200, 200 < 350)")
+    lines.append("")
+    if s1:
+        lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | 50/200 Gap | 200/350 Gap |")
+        lines.append("|--------|-----|--------|---------|---------|----------|--------|------------|-------------|")
+        for r in s1:
+            lines.append(_table_row(r, show_t2=False))
+    else:
+        lines.append("*No stocks in Stage 1*")
+    lines.append("")
+
+    # ── Hold (stacked but SMAs not all rising) ──────────────
+    if hold:
+        lines.append("## 🟢 Hold — Stacked but SMAs not all rising")
+        lines.append("")
+        lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | T2 Cross | T2 Age | 50/200 Gap | 200/350 Gap |")
+        lines.append("|--------|-----|--------|---------|---------|----------|--------|----------|--------|------------|-------------|")
+        for r in hold:
+            lines.append(_table_row(r, show_t2=True))
+        lines.append("")
+
+    # ── Wait (cross active but 50 SMA not rising) ───────────
+    if wait:
+        lines.append("## ⚪ Wait — Cross active but 50 SMA not rising")
+        lines.append("")
+        lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | 50/200 Gap | 200/350 Gap |")
+        lines.append("|--------|-----|--------|---------|---------|----------|--------|------------|-------------|")
+        for r in wait:
+            lines.append(_table_row(r, show_t2=False))
+        lines.append("")
+
+    # ── Legend ───────────────────────────────────────────────
+    lines.append("---")
+    lines.append("")
+    lines.append("<details>")
+    lines.append("<summary>System Rules</summary>")
+    lines.append("")
+    lines.append("| Status | Condition | Action | Position |")
+    lines.append("|--------|-----------|--------|----------|")
+    lines.append("| 🆕 Fresh T1 | 50/200 bullish cross ≤30 days | Candidate for T1 | — |")
+    lines.append("| 🟡 Stage 1 | Price > 50 > 200, 200 < 350, 50↑ | Buy T1 | 50% |")
+    lines.append("| 🆕 Fresh T2 | 200/350 bullish cross ≤30 days | Candidate for T2 | — |")
+    lines.append("| 🟢 Stage 2 | Price > 50 > 200 > 350, 50↑ 200↑ | Add T2 | 100% |")
+    lines.append("| ⚪ Wait | Cross active but SMA not rising | No action | — |")
+    lines.append("")
+    lines.append("**SMA Direction:** 50 SMA vs 5 days ago · 200/350 SMA vs 20 days ago")
+    lines.append("")
+    lines.append("**Exit Rules:**")
+    lines.append("| | Exit trigger | Action |")
+    lines.append("|--|-------------|--------|")
+    lines.append("| T1 | 50 SMA crosses below 200 SMA | Sell tranche 1 |")
+    lines.append("| T2 | 200 SMA crosses below 350 SMA | Sell tranche 2 |")
+    lines.append("")
+    lines.append("</details>")
+    lines.append("")
+
     return "\n".join(lines)
 
 
@@ -276,16 +395,23 @@ if __name__ == '__main__':
     symbols = load_stock_list(stock_list)
     results, errors = run_scan(symbols)
 
-    # Write outputs
     out_dir = Path(__file__).parent
     md = generate_markdown(results, len(symbols), errors)
     (out_dir / "crossovers.md").write_text(md)
     print(f"  Wrote crossovers.md")
 
+    s1_count = len([r for r in results if r["stage"] == "Stage 1"])
+    s2_count = len([r for r in results if r["stage"] == "Stage 2"])
+    hold_count = len([r for r in results if r["stage"] == "Hold"])
+    wait_count = len([r for r in results if r["stage"] == "Wait"])
+
     j = {
         "updated": datetime.now(IST).isoformat(),
         "total_scanned": len(symbols),
-        "golden_cross_count": len(results),
+        "stage_1_count": s1_count,
+        "stage_2_count": s2_count,
+        "hold_count": hold_count,
+        "wait_count": wait_count,
         "errors": errors,
         "stocks": results,
     }
