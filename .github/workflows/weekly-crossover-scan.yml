@@ -39,43 +39,41 @@ jobs:
           git pull --rebase origin main
           git push
 
-      - name: Create issue for fresh crosses
+      - name: Create issue for fresh entries
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Parse crossovers.json for fresh golden crosses
           FRESH=$(python3 -c "
           import json
           data = json.load(open('crossovers.json'))
-          fresh = [s for s in data['stocks'] if s.get('freshness', '').startswith('🆕')]
+          fresh = [s for s in data['stocks'] if s.get('t1_fresh') or s.get('t2_fresh')]
           if not fresh:
               exit(0)
           lines = []
           for f in fresh:
-              di = '✓' if f['di_bullish'] else '✗'
-              pa = '✓' if f['price_above_both'] else '✗'
-              lines.append(f\"| {f['symbol']} | ₹{f['ltp']} | ₹{f['sma100']} | ₹{f['sma350']} | {f['cross_date']} | {f['rsi']} | {f['adx']} | {di} | {pa} |\")
-          table = '| Symbol | LTP | SMA 100 | SMA 350 | Cross Date | RSI | ADX | +DI>-DI | Price>SMAs |\n|--------|-----|---------|---------|------------|-----|-----|---------|------------|\n' + '\n'.join(lines)
+              label = '🆕 T2' if f.get('t2_fresh') else '🆕 T1'
+              lines.append(f\"| {f['symbol']} | {label} | {f['stage_label']} | ₹{f['ltp']} | ₹{f['sma50']} | ₹{f['sma200']} | ₹{f['sma350']} |\")
+          table = '| Symbol | Fresh | Stage | LTP | SMA 50 | SMA 200 | SMA 350 |\n|--------|-------|-------|-----|--------|---------|---------|' + '\n' + '\n'.join(lines)
           print(table)
           ")
 
           if [ -n "$FRESH" ]; then
             DATE=$(date -u '+%Y-%m-%d')
-            COUNT=$(echo "$FRESH" | grep -c '|')
-            TOTAL=$(python3 -c "import json; d=json.load(open('crossovers.json')); print(d['golden_cross_count'])")
+            S1=$(python3 -c "import json; d=json.load(open('crossovers.json')); print(d['stage_1_count'])")
+            S2=$(python3 -c "import json; d=json.load(open('crossovers.json')); print(d['stage_2_count'])")
             BODY=$(cat <<EOF
-          ## 🆕 Fresh golden crosses — $DATE
+          ## 🆕 Fresh entries — $DATE
 
           $FRESH
 
           ---
-          **Total active golden crosses:** $TOTAL
+          **Stage 1 (half):** $S1 | **Stage 2 (full):** $S2
 
           [Full report →](../blob/main/crossovers.md)
           EOF
           )
             gh issue create \
-              --title "🆕 $COUNT fresh golden cross(es) — $DATE" \
+              --title "🆕 Fresh entries — $DATE" \
               --body "$BODY" \
               --label "crossover"
           fi
