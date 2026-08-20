@@ -61,6 +61,21 @@ def latest_overall(values):
     return max(candidates, key=lambda c: c[0])
 
 
+def latest_median_pe(values):
+    """
+    median_pe values come as [date_str, "41.3"] (string, not float) and
+    Screener typically only stamps two points bracketing the window —
+    just take whichever is latest and cast it to float.
+    """
+    row = latest_overall(values)
+    if row is None:
+        return None
+    try:
+        return float(row[1])
+    except (TypeError, ValueError):
+        return None
+
+
 def months_ago(d, months):
     # Simple month subtraction without extra deps (dateutil not assumed).
     year = d.year
@@ -85,6 +100,7 @@ def process_symbol(path, months):
     symbol = payload.get("symbol", path.stem)
     eps_values = payload.get("data", {}).get("eps", {}).get("values", [])
     pe_values = payload.get("data", {}).get("pe", {}).get("values", [])
+    median_pe_values = payload.get("data", {}).get("median_pe", {}).get("values", [])
 
     latest_eps_row = latest_overall(eps_values)
     latest_pe_row = latest_overall(pe_values)
@@ -110,10 +126,16 @@ def process_symbol(path, months):
     if eps_growth is None or pe_change is None:
         return None, f"{symbol}: zero baseline value, can't compute % change"
 
+    median_pe = latest_median_pe(median_pe_values)
+    pe_to_median = None
+    if median_pe not in (None, 0):
+        pe_to_median = round(float(latest_pe_row[1]) / median_pe, 2)
+
     row = {
         "Symbol": symbol,
         "EPS Growth %": eps_growth,
         "PE Change %": pe_change,
+        "PE / Median PE": pe_to_median,
         "Latest EPS": latest_eps_row[1],
         "Latest EPS Date": latest_eps_row[0].isoformat(),
         "Prior EPS": prior_eps_row[1],
@@ -122,6 +144,7 @@ def process_symbol(path, months):
         "Latest PE Date": latest_pe_row[0].isoformat(),
         "Prior PE": prior_pe_row[1],
         "Prior PE Date": prior_pe_row[0].isoformat(),
+        "Median PE": median_pe,
         "Lookback target (as-of)": target_date.isoformat(),
     }
     return row, None
@@ -185,10 +208,10 @@ def main():
         sys.exit(1)
 
     fieldnames = [
-        "Symbol", "EPS Growth %", "PE Change %",
+        "Symbol", "EPS Growth %", "PE Change %", "PE / Median PE",
         "Latest EPS", "Latest EPS Date", "Prior EPS", "Prior EPS Date",
         "Latest PE", "Latest PE Date", "Prior PE", "Prior PE Date",
-        "Lookback target (as-of)",
+        "Median PE", "Lookback target (as-of)",
     ]
     with args.output.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
