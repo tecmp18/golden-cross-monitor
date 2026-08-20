@@ -1,0 +1,45 @@
+name: Screener History Refresh
+
+on:
+  schedule:
+    # 04:00 UTC on the 1st of every month (~9:30 AM IST)
+    - cron: '0 4 1 * *'
+  workflow_dispatch: {}   # lets you trigger a manual run from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch Screener history for all companies
+        run: |
+          python screener_history.py \
+            --companies companies.json \
+            --output screener_data \
+            --days 1825 \
+            --delay 1.5
+
+      - name: Commit and push updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add screener_data/
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Monthly Screener history refresh ($(date -u +%Y-%m-%d))"
+            git push
+          fi
