@@ -24,13 +24,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Fetch Screener history for all companies
-        run: |
-          python screener_history.py \
-            --companies companies.json \
-            --output screener_data \
-            --days 1825 \
-            --delay 1.5
+#      - name: Fetch Screener history for all companies
+#        run: |
+#          python screener_history.py \
+#            --companies companies.json \
+#            --output screener_data \
+#            --days 1825 \
+#            --delay 1.5
 
       - name: Build quadrant CSV from refreshed data
         run: |
