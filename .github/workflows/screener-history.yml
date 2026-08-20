@@ -32,14 +32,21 @@ jobs:
             --days 1825 \
             --delay 1.5
 
+      - name: Build quadrant CSV from refreshed data
+        run: |
+          python quadrant_export.py \
+            --input screener_data \
+            --output watchlist_quadrant.csv \
+            --months 3
+
       - name: Commit and push updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add screener_data/
+          git add screener_data/ watchlist_quadrant.csv
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Monthly Screener history refresh ($(date -u +%Y-%m-%d))"
+            git commit -m "Monthly Screener history + quadrant CSV refresh ($(date -u +%Y-%m-%d))"
             git push
           fi
