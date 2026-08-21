@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-21T16:25:28.240586+05:30",
+  "updated": "2026-08-21T16:54:39.352486+05:30",
   "market": {
     "signal": "\u2713",
     "note": "Nifty 500: Price > 50 > 200 \u2014 healthy"
@@ -113,22 +113,20 @@
     },
     {
       "symbol": "FMCGIETF",
-      "status": "\ud83d\udd34 EXIT ALL",
-      "ltp": 51.2,
-      "sma50": 52.68,
-      "sma200": 54.61,
-      "sma350": 56.55,
-      "gc_50_200": "False",
-      "gc_200_350": "False",
-      "sma50_rising": "False",
-      "sma200_rising": "False",
-      "sma350_rising": "False",
-      "exit_t1": true,
-      "exit_t2": true,
-      "alerts": [
-        "50<200 AND 200<350 \u2014 sell everything"
-      ],
-      "error": null
+      "status": "ERROR",
+      "ltp": null,
+      "sma50": null,
+      "sma200": null,
+      "sma350": null,
+      "gc_50_200": null,
+      "gc_200_350": null,
+      "sma50_rising": null,
+      "sma200_rising": null,
+      "sma350_rising": null,
+      "exit_t1": false,
+      "exit_t2": false,
+      "alerts": [],
+      "error": "Insufficient data (25 bars)"
     },
     {
       "symbol": "PNBHOUSING",
@@ -276,20 +274,20 @@
     },
     {
       "symbol": "MID150BEES",
-      "status": "\ud83d\udfe2 HOLD BOTH",
-      "ltp": 242.3,
-      "sma50": 238.39,
-      "sma200": 228.6,
-      "sma350": 223.45,
-      "gc_50_200": "True",
-      "gc_200_350": "True",
-      "sma50_rising": "True",
-      "sma200_rising": "True",
-      "sma350_rising": "True",
+      "status": "ERROR",
+      "ltp": null,
+      "sma50": null,
+      "sma200": null,
+      "sma350": null,
+      "gc_50_200": null,
+      "gc_200_350": null,
+      "sma50_rising": null,
+      "sma200_rising": null,
+      "sma350_rising": null,
       "exit_t1": false,
       "exit_t2": false,
       "alerts": [],
-      "error": null
+      "error": "Insufficient data (25 bars)"
     },
     {
       "symbol": "NIFTYBEES",

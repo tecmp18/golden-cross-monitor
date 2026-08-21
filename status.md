@@ -1,6 +1,6 @@
 # Golden Cross Monitor
 
-**Last updated:** 2026-08-21 16:25 IST
+**Last updated:** 2026-08-21 16:54 IST
 **Market (Nifty 500):** ✓ Nifty 500: Price > 50 > 200 — healthy
 
 ↑ = SMA rising (50: 5d, 200/350: 20d) · ↓ = SMA falling
@@ -17,7 +17,7 @@
 | BORANA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (310 bars) |
 | CANBK | 🟡 SELL T1 | ₹129.96 | ₹128.45 ↓ | ₹135.94 ↑ | ₹123.22 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
 | DALBHARAT | 🔴 EXIT ALL | ₹1880.0 | ₹1790.94 ↑ | ₹1919.84 ↓ | ₹2013.32 ↑ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| FMCGIETF | 🔴 EXIT ALL | ₹51.2 | ₹52.68 ↓ | ₹54.61 ↓ | ₹56.55 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
+| FMCGIETF | ❌ ERROR | — | — | — | — | — | — | Insufficient data (25 bars) |
 | PNBHOUSING | 🟢 HOLD BOTH | ₹1170.3 | ₹1080.43 ↑ | ₹952.25 ↑ | ₹948.79 ↑ | ✓ | ✓ | — |
 | ICICIB22 | 🟡 SELL T1 | ₹115.28 | ₹117.28 ↓ | ₹119.11 ↑ | ₹114.62 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
 | IEX | 🔴 EXIT ALL | ₹123.7 | ₹124.68 ↑ | ₹127.2 ↓ | ₹142.87 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
@@ -26,7 +26,7 @@
 | AKUMS | 🟢 HOLD BOTH | ₹750.0 | ₹669.79 ↑ | ₹524.65 ↑ | ₹516.08 ↑ | ✓ | ✓ | — |
 | LGEINDIA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (215 bars) |
 | LTFOODS | 🔴 EXIT ALL | ₹427.6 | ₹393.37 ↑ | ₹395.13 ↑ | ₹407.58 ↑ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| MID150BEES | 🟢 HOLD BOTH | ₹242.3 | ₹238.39 ↑ | ₹228.6 ↑ | ₹223.45 ↑ | ✓ | ✓ | — |
+| MID150BEES | ❌ ERROR | — | — | — | — | — | — | Insufficient data (25 bars) |
 | NIFTYBEES | 🟡 SELL T1 | ₹276.76 | ₹275.02 ↑ | ₹279.64 ↓ | ₹279.24 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
 | ORKLAINDIA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (200 bars) |
 | RBA | 🟠 SELL T2 | ₹104.24 | ₹78.73 ↑ | ₹68.01 ↑ | ₹72.53 ↑ | ✓ | ✗ | 200 < 350 — sell tranche 2 |
