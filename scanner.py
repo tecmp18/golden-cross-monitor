@@ -260,6 +260,12 @@ def main():
     (out_dir / "status.json").write_text(json.dumps(j, indent=2, default=str))
     print(f"  Wrote status.json")
 
+    # Copy JSON to docs/ for GitHub Pages
+    docs_dir = out_dir / "docs"
+    docs_dir.mkdir(exist_ok=True)
+    (docs_dir / "status.json").write_text(json.dumps(j, indent=2, default=str))
+    print(f"  Wrote docs/status.json")
+
     sells = [r for r in results if r.get("exit_t1") or r.get("exit_t2")]
     if sells:
         for r in sells:
