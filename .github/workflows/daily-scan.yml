@@ -33,7 +33,7 @@ jobs:
         run: |
           git config user.name "golden-cross-bot"
           git config user.email "bot@golden-cross-monitor"
-          git add status.md status.json
+          git add status.md status.json docs/status.json
           git diff --staged --quiet || git commit -m "scan: $(date -u '+%Y-%m-%d %H:%M UTC')"
           git pull --rebase origin main
           git push
@@ -42,19 +42,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Parse status.json for exit or caution signals
           ALERTS=$(python3 -c "
           import json
           data = json.load(open('status.json'))
-          alerts = [s for s in data['stocks'] if s.get('exit') or s['status'].startswith('🟡')]
+          alerts = [s for s in data['stocks'] if s.get('exit_t1') or s.get('exit_t2')]
           if not alerts:
               exit(0)
           lines = []
           for a in alerts:
-              t = '✓' if a.get('turtle_gc') else '✗'
-              c = '✓' if a.get('classic_gc') else '✗'
-              lines.append(f\"| {a['symbol']} | {a['status']} | ₹{a['ltp']} | {t} | {c} |\")
-          table = '| Symbol | Status | LTP | 100/350 | 50/200 |\n|--------|--------|-----|---------|--------|\n' + '\n'.join(lines)
+              t1 = '✓' if a.get('gc_50_200') else '✗'
+              t2 = '✓' if a.get('gc_200_350') else '✗'
+              lines.append(f\"| {a['symbol']} | {a['status']} | ₹{a['ltp']} | {t1} | {t2} |\")
+          table = '| Symbol | Status | LTP | 50/200 | 200/350 |\n|--------|--------|-----|--------|---------|' + '\n' + '\n'.join(lines)
           print(table)
           ")
 
