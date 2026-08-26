@@ -266,6 +266,10 @@ def generate_markdown(results, total_scanned, errors):
     fresh_t1 = [r for r in results if r["t1_fresh"] and r["stage"] == "Stage 1"]
     fresh_t2 = [r for r in results if r["t2_fresh"] and r["stage"] == "Stage 2"]
 
+    # Sort fresh entries by cross age — latest (smallest age) first
+    fresh_t1.sort(key=lambda r: r["t1_cross_age"] if r["t1_cross_age"] is not None else 9999)
+    fresh_t2.sort(key=lambda r: r["t2_cross_age"] if r["t2_cross_age"] is not None else 9999)
+
     s1.sort(key=lambda r: (0 if r["t1_fresh"] else 1, r["t1_cross_age"] or 9999))
     s2.sort(key=lambda r: (0 if r["t2_fresh"] else 1, r["t2_cross_age"] or 9999))
 
