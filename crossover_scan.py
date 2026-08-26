@@ -417,3 +417,9 @@ if __name__ == '__main__':
     }
     (out_dir / "crossovers.json").write_text(json.dumps(j, indent=2, default=str))
     print(f"  Wrote crossovers.json")
+
+    # Copy JSON to docs/ for GitHub Pages
+    docs_dir = out_dir / "docs"
+    docs_dir.mkdir(exist_ok=True)
+    (docs_dir / "crossovers.json").write_text(json.dumps(j, indent=2, default=str))
+    print(f"  Wrote docs/crossovers.json")
