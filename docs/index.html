@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golden Cross Monitor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0c0e13;
+    --surface: #14171e;
+    --surface-2: #1a1e27;
+    --border: #252a35;
+    --text: #c8cdd8;
+    --text-dim: #6b7280;
+    --text-bright: #e8ecf4;
+    --green: #22c55e;
+    --green-dim: #16532d;
+    --yellow: #eab308;
+    --yellow-dim: #533d16;
+    --orange: #f97316;
+    --orange-dim: #532d0c;
+    --red: #ef4444;
+    --red-dim: #531616;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --up: #22c55e;
+    --down: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: -0.5px;
+  }
+
+  .updated {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .market-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .market-bar .signal { font-size: 16px; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { color: var(--text); border-color: var(--text-dim); }
+  .tab.active { background: var(--surface-2); color: var(--text-bright); border-color: var(--blue); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .section {
+    margin-bottom: 28px;
+  }
+
+  .section-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-header .count {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 120px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-feature-settings: 'tnum';
+  }
+
+  tr:hover td { background: var(--surface); }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .status-hold   { background: var(--green-dim); color: var(--green); }
+  .status-sell-t1 { background: var(--yellow-dim); color: var(--yellow); }
+  .status-sell-t2 { background: var(--orange-dim); color: var(--orange); }
+  .status-exit   { background: var(--red-dim); color: var(--red); }
+  .status-error  { background: var(--surface-2); color: var(--text-dim); }
+  .status-stage1 { background: var(--yellow-dim); color: var(--yellow); }
+  .status-stage2 { background: var(--green-dim); color: var(--green); }
+  .status-wait   { background: var(--surface-2); color: var(--text-dim); }
+  .status-fresh  { background: rgba(6,182,212,0.15); color: var(--cyan); }
+
+  .dir-up { color: var(--up); }
+  .dir-down { color: var(--down); }
+
+  .cross-ok { color: var(--green); }
+  .cross-fail { color: var(--red); }
+
+  .alert-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    max-width: 300px;
+    white-space: normal;
+    line-height: 1.4;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  .table-wrapper table { margin: 0; }
+  .table-wrapper th { background: var(--surface); }
+  .table-wrapper tr:hover td { background: var(--surface-2); }
+  .table-wrapper tr:last-child td { border-bottom: none; }
+
+  .legend {
+    margin-top: 32px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .legend h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 16px 12px; }
+    h1 { font-size: 16px; }
+    .stats-row { gap: 8px; }
+    .stat { min-width: 100px; padding: 8px 12px; }
+    .stat-value { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Golden Cross Monitor</h1>
+    <span class="updated" id="lastUpdated">Loading...</span>
+  </header>
+
+  <div class="market-bar" id="marketBar">
+    <span class="signal">⏳</span>
+    <span>Loading market data...</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('daily')">Daily Watchlist</button>
+    <button class="tab" onclick="switchTab('weekly')">Weekly Crossovers</button>
+  </div>
+
+  <!-- DAILY TAB -->
+  <div id="daily" class="tab-content active">
+    <div class="loading" id="dailyLoading">Loading watchlist data...</div>
+    <div id="dailyContent" style="display:none">
+      <div class="stats-row" id="dailyStats"></div>
+      <div class="section">
+        <div class="table-wrapper">
+          <table id="dailyTable">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Status</th>
+                <th>LTP</th>
+                <th>SMA 50</th>
+                <th>SMA 200</th>
+                <th>SMA 350</th>
+                <th>50/200</th>
+                <th>200/350</th>
+                <th>Alerts</th>
+              </tr>
+            </thead>
+            <tbody id="dailyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEKLY TAB -->
+  <div id="weekly" class="tab-content">
+    <div class="loading" id="weeklyLoading">Loading crossover data...</div>
+    <div id="weeklyContent" style="display:none">
+      <div class="stats-row" id="weeklyStats"></div>
+
+      <div class="section" id="freshSection" style="display:none">
+        <div class="section-header">🆕 Fresh Entries <span class="count" id="freshCount">0</span></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Stage</th>
+                <th>LTP</th>
+                <th>SMA 50</th>
+                <th>SMA 200</th>
+                <th>SMA 350</th>
+                <th>Cross Date</th>
+                <th>Age</th>
+                <th>50/200 Gap</th>
+              </tr>
+            </thead>
+            <tbody id="freshBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section" id="stage2Section">
+        <div class="section-header">🟢 Stage 2 — Full Position <span class="count" id="s2Count">0</span></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>LTP</th>
+                <th>SMA 50</th>
+                <th>SMA 200</th>
+                <th>SMA 350</th>
+                <th>T1 Cross</th>
+                <th>T2 Cross</th>
+                <th>50/200 Gap</th>
+                <th>200/350 Gap</th>
+              </tr>
+            </thead>
+            <tbody id="stage2Body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section" id="stage1Section">
+        <div class="section-header">🟡 Stage 1 — Half Position <span class="count" id="s1Count">0</span></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>LTP</th>
+                <th>SMA 50</th>
+                <th>SMA 200</th>
+                <th>SMA 350</th>
+                <th>T1 Cross</th>
+                <th>Age</th>
+                <th>50/200 Gap</th>
+              </tr>
+            </thead>
+            <tbody id="stage1Body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section" id="waitSection" style="display:none">
+        <div class="section-header">⚪ Wait <span class="count" id="waitCount">0</span></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>LTP</th>
+                <th>SMA 50</th>
+                <th>SMA 200</th>
+                <th>SMA 350</th>
+                <th>T1 Cross</th>
+                <th>50/200 Gap</th>
+              </tr>
+            </thead>
+            <tbody id="waitBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h3>System Rules</h3>
+    <div class="legend-grid">
+      <div class="legend-item"><span class="status status-stage1">STAGE 1</span> Price > 50↑ > 200, 200 < 350 → buy 50%</div>
+      <div class="legend-item"><span class="status status-stage2">STAGE 2</span> Price > 50↑ > 200↑ > 350 → add to 100%</div>
+      <div class="legend-item"><span class="status status-sell-t1">SELL T1</span> 50 < 200 → sell tranche 1</div>
+      <div class="legend-item"><span class="status status-sell-t2">SELL T2</span> 200 < 350 → sell tranche 2</div>
+      <div class="legend-item"><span class="status status-exit">EXIT ALL</span> 50 < 200 AND 200 < 350</div>
+      <div class="legend-item"><span class="status status-hold">HOLD BOTH</span> Both crosses intact</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const dir = (rising) => rising
+  ? `<span class="dir-up">↑</span>`
+  : `<span class="dir-down">↓</span>`;
+
+const cross = (ok) => ok
+  ? `<span class="cross-ok">✓</span>`
+  : `<span class="cross-fail">✗</span>`;
+
+function statusClass(status) {
+  if (status.includes('HOLD')) return 'status-hold';
+  if (status.includes('SELL T1')) return 'status-sell-t1';
+  if (status.includes('SELL T2')) return 'status-sell-t2';
+  if (status.includes('EXIT')) return 'status-exit';
+  if (status.includes('STAGE 2')) return 'status-stage2';
+  if (status.includes('STAGE 1')) return 'status-stage1';
+  if (status.includes('WAIT')) return 'status-wait';
+  return 'status-error';
+}
+
+function statBox(label, value, color) {
+  return `<div class="stat">
+    <div class="stat-label">${label}</div>
+    <div class="stat-value" ${color ? `style="color:${color}"` : ''}>${value}</div>
+  </div>`;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
+}
+
+// ── DAILY ────────────────────────────────────────────────
+
+async function loadDaily() {
+  try {
+    const res = await fetch('status.json');
+    if (!res.ok) throw new Error('No data');
+    const data = await res.json();
+
+    document.getElementById('lastUpdated').textContent = `Updated: ${data.updated?.split('T')[0] || '—'}`;
+
+    const m = data.market;
+    document.getElementById('marketBar').innerHTML =
+      `<span class="signal">${m.signal}</span><span>${m.note}</span>`;
+
+    const stocks = data.stocks || [];
+    const holds = stocks.filter(s => s.status?.includes('HOLD')).length;
+    const warns = stocks.filter(s => s.exit_t1 || s.exit_t2).length;
+
+    document.getElementById('dailyStats').innerHTML =
+      statBox('Total', stocks.length) +
+      statBox('Hold Both', holds, 'var(--green)') +
+      statBox('Alerts', warns, warns > 0 ? 'var(--red)' : 'var(--text-dim)');
+
+    const tbody = document.getElementById('dailyBody');
+    tbody.innerHTML = stocks.map(s => {
+      if (s.status === 'ERROR') {
+        return `<tr>
+          <td class="mono">${s.symbol}</td>
+          <td><span class="status status-error">ERROR</span></td>
+          <td colspan="7" class="alert-text">${s.error || '—'}</td>
+        </tr>`;
+      }
+      return `<tr>
+        <td class="mono" style="font-weight:600;color:var(--text-bright)">${s.symbol}</td>
+        <td><span class="status ${statusClass(s.status)}">${s.status.replace(/[🟢🟡🟠🔴❌]/g,'').trim()}</span></td>
+        <td class="mono">₹${s.ltp}</td>
+        <td class="mono">₹${s.sma50} ${dir(s.sma50_rising)}</td>
+        <td class="mono">₹${s.sma200} ${dir(s.sma200_rising)}</td>
+        <td class="mono">₹${s.sma350} ${dir(s.sma350_rising)}</td>
+        <td>${cross(s.gc_50_200)}</td>
+        <td>${cross(s.gc_200_350)}</td>
+        <td class="alert-text">${s.alerts?.join('; ') || '—'}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('dailyLoading').style.display = 'none';
+    document.getElementById('dailyContent').style.display = 'block';
+  } catch (e) {
+    document.getElementById('dailyLoading').textContent = 'No watchlist data found. Run the daily scan first.';
+  }
+}
+
+// ── WEEKLY ───────────────────────────────────────────────
+
+async function loadWeekly() {
+  try {
+    const res = await fetch('crossovers.json');
+    if (!res.ok) throw new Error('No data');
+    const data = await res.json();
+
+    const stocks = data.stocks || [];
+    const s1 = stocks.filter(s => s.stage === 'Stage 1');
+    const s2 = stocks.filter(s => s.stage === 'Stage 2');
+    const hold = stocks.filter(s => s.stage === 'Hold');
+    const wait = stocks.filter(s => s.stage === 'Wait');
+    const fresh = stocks.filter(s => s.t1_fresh || s.t2_fresh);
+
+    document.getElementById('weeklyStats').innerHTML =
+      statBox('Scanned', data.total_scanned) +
+      statBox('Stage 2', s2.length, 'var(--green)') +
+      statBox('Stage 1', s1.length, 'var(--yellow)') +
+      statBox('Fresh', fresh.length, fresh.length > 0 ? 'var(--cyan)' : 'var(--text-dim)');
+
+    document.getElementById('s2Count').textContent = s2.length;
+    document.getElementById('s1Count').textContent = s1.length;
+
+    // Fresh entries
+    if (fresh.length > 0) {
+      document.getElementById('freshSection').style.display = 'block';
+      document.getElementById('freshCount').textContent = fresh.length;
+      document.getElementById('freshBody').innerHTML = fresh.map(s => `<tr>
+        <td class="mono" style="font-weight:600;color:var(--cyan)">${s.symbol}</td>
+        <td><span class="status ${s.t2_fresh ? 'status-stage2' : 'status-stage1'}">${s.t2_fresh ? 'Fresh T2' : 'Fresh T1'}</span></td>
+        <td class="mono">₹${s.ltp}</td>
+        <td class="mono">₹${s.sma50} ${dir(s.sma50_rising)}</td>
+        <td class="mono">₹${s.sma200} ${dir(s.sma200_rising)}</td>
+        <td class="mono">₹${s.sma350} ${dir(s.sma350_rising)}</td>
+        <td class="mono">${s.t2_fresh ? (s.t2_cross_date||'—') : (s.t1_cross_date||'—')}</td>
+        <td class="mono">${s.t2_fresh ? (s.t2_cross_age+'d') : (s.t1_cross_age+'d')}</td>
+        <td class="mono">${s.gap_50_200_pct}%</td>
+      </tr>`).join('');
+    }
+
+    // Stage 2
+    document.getElementById('stage2Body').innerHTML = s2.length > 0
+      ? s2.map(s => `<tr>
+          <td class="mono" style="font-weight:600;color:var(--text-bright)">${s.symbol}</td>
+          <td class="mono">₹${s.ltp}</td>
+          <td class="mono">₹${s.sma50} ${dir(s.sma50_rising)}</td>
+          <td class="mono">₹${s.sma200} ${dir(s.sma200_rising)}</td>
+          <td class="mono">₹${s.sma350} ${dir(s.sma350_rising)}</td>
+          <td class="mono">${s.t1_cross_date||'—'}</td>
+          <td class="mono">${s.t2_cross_date||'—'}</td>
+          <td class="mono">${s.gap_50_200_pct}%</td>
+          <td class="mono">${s.gap_200_350_pct != null ? s.gap_200_350_pct+'%' : '—'}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="9" class="empty">No stocks in Stage 2</td></tr>';
+
+    // Stage 1
+    document.getElementById('stage1Body').innerHTML = s1.length > 0
+      ? s1.map(s => `<tr>
+          <td class="mono" style="font-weight:600;color:var(--text-bright)">${s.symbol}</td>
+          <td class="mono">₹${s.ltp}</td>
+          <td class="mono">₹${s.sma50} ${dir(s.sma50_rising)}</td>
+          <td class="mono">₹${s.sma200} ${dir(s.sma200_rising)}</td>
+          <td class="mono">₹${s.sma350} ${dir(s.sma350_rising)}</td>
+          <td class="mono">${s.t1_cross_date||'—'}</td>
+          <td class="mono">${s.t1_cross_age != null ? s.t1_cross_age+'d' : '—'}</td>
+          <td class="mono">${s.gap_50_200_pct}%</td>
+        </tr>`).join('')
+      : '<tr><td colspan="8" class="empty">No stocks in Stage 1</td></tr>';
+
+    // Wait
+    if (wait.length > 0) {
+      document.getElementById('waitSection').style.display = 'block';
+      document.getElementById('waitCount').textContent = wait.length;
+      document.getElementById('waitBody').innerHTML = wait.map(s => `<tr>
+        <td class="mono">${s.symbol}</td>
+        <td class="mono">₹${s.ltp}</td>
+        <td class="mono">₹${s.sma50} ${dir(s.sma50_rising)}</td>
+        <td class="mono">₹${s.sma200} ${dir(s.sma200_rising)}</td>
+        <td class="mono">₹${s.sma350} ${dir(s.sma350_rising)}</td>
+        <td class="mono">${s.t1_cross_date||'—'}</td>
+        <td class="mono">${s.gap_50_200_pct}%</td>
+      </tr>`).join('');
+    }
+
+    document.getElementById('weeklyLoading').style.display = 'none';
+    document.getElementById('weeklyContent').style.display = 'block';
+  } catch (e) {
+    document.getElementById('weeklyLoading').textContent = 'No crossover data found. Run the weekly scan first.';
+  }
+}
+
+loadDaily();
+loadWeekly();
+</script>
+</body>
+</html>
