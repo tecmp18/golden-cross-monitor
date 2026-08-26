@@ -1,6 +1,6 @@
 # Golden Cross Monitor
 
-**Last updated:** 2026-08-26 16:59 IST
+**Last updated:** 2026-08-26 20:18 IST
 **Market (Nifty 500):** ✓ Nifty 500: Price > 50 > 200 — healthy
 
 ↑ = SMA rising (50: 5d, 200/350: 20d) · ↓ = SMA falling
