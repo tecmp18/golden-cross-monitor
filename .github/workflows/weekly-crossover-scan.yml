@@ -34,7 +34,7 @@ jobs:
         run: |
           git config user.name "golden-cross-bot"
           git config user.email "bot@golden-cross-monitor"
-          git add crossovers.md crossovers.json
+          git add crossovers.md crossovers.json docs/crossovers.json
           git diff --staged --quiet || git commit -m "crossover-scan: $(date -u '+%Y-%m-%d')"
           git pull --rebase origin main
           git push
