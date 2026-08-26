@@ -553,7 +553,12 @@ async function loadWeekly() {
     const s2 = stocks.filter(s => s.stage === 'Stage 2');
     const hold = stocks.filter(s => s.stage === 'Hold');
     const wait = stocks.filter(s => s.stage === 'Wait');
-    const fresh = stocks.filter(s => s.t1_fresh || s.t2_fresh);
+    const fresh = stocks.filter(s => s.t1_fresh || s.t2_fresh)
+      .sort((a, b) => {
+        const ageA = a.t2_fresh ? a.t2_cross_age : a.t1_cross_age;
+        const ageB = b.t2_fresh ? b.t2_cross_age : b.t1_cross_age;
+        return (ageA ?? 9999) - (ageB ?? 9999);
+      });
 
     document.getElementById('weeklyStats').innerHTML =
       statBox('Scanned', data.total_scanned) +
