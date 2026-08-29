@@ -307,7 +307,6 @@
 <div class="container">
   <header>
     <h1>Golden Cross Monitor</h1>
-    <span class="updated" id="lastUpdated">Loading...</span>
   </header>
 
   <div class="market-bar" id="marketBar">
@@ -324,6 +323,7 @@
   <div id="daily" class="tab-content active">
     <div class="loading" id="dailyLoading">Loading watchlist data...</div>
     <div id="dailyContent" style="display:none">
+      <div class="updated" id="dailyUpdated" style="margin-bottom:16px">Updated: —</div>
       <div class="stats-row" id="dailyStats"></div>
       <div class="section">
         <div class="table-wrapper">
@@ -352,6 +352,7 @@
   <div id="weekly" class="tab-content">
     <div class="loading" id="weeklyLoading">Loading crossover data...</div>
     <div id="weeklyContent" style="display:none">
+      <div class="updated" id="weeklyUpdated" style="margin-bottom:16px">Updated: —</div>
       <div class="stats-row" id="weeklyStats"></div>
 
       <div class="section" id="freshSection" style="display:none">
@@ -488,6 +489,19 @@ function switchTab(tab) {
   document.querySelector(`.tab[onclick*="${tab}"]`).classList.add('active');
 }
 
+function formatIST(isoString) {
+  if (!isoString) return '—';
+  const d = new Date(isoString);
+  if (isNaN(d)) return isoString.split('T')[0] || '—';
+  const dateStr = d.toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata'
+  });
+  const timeStr = d.toLocaleTimeString('en-IN', {
+    hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata'
+  });
+  return `${dateStr}, ${timeStr} IST`;
+}
+
 // ── DAILY ────────────────────────────────────────────────
 
 async function loadDaily() {
@@ -496,7 +510,7 @@ async function loadDaily() {
     if (!res.ok) throw new Error('No data');
     const data = await res.json();
 
-    document.getElementById('lastUpdated').textContent = `Updated: ${data.updated?.split('T')[0] || '—'}`;
+    document.getElementById('dailyUpdated').textContent = `Updated: ${formatIST(data.updated)}`;
 
     const m = data.market;
     document.getElementById('marketBar').innerHTML =
@@ -547,6 +561,8 @@ async function loadWeekly() {
     const res = await fetch('crossovers.json');
     if (!res.ok) throw new Error('No data');
     const data = await res.json();
+
+    document.getElementById('weeklyUpdated').textContent = `Updated: ${formatIST(data.updated)}`;
 
     const stocks = data.stocks || [];
     const s1 = stocks.filter(s => s.stage === 'Stage 1');
