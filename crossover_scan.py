@@ -12,6 +12,18 @@ SMA Direction:
   50 SMA rising  → current > 5 trading days ago
   200 SMA rising → current > 20 trading days ago
   350 SMA rising → current > 20 trading days ago
+
+Skip reasons (replaces the old flat "errors" count):
+  no_data               — yfinance returned an empty dataframe
+  insufficient_history  — fewer than 360 raw bars, or fewer than 21 bars
+                           after dropping NaN SMA rows (too-new listing,
+                           corporate-action gap, etc.)
+  not_qualified          — real data, but doesn't meet Price > 50 > 200
+                           (the normal, expected case for most of the
+                           universe most of the time)
+  exception               — a genuine script/API failure (network, parsing,
+                           rate limit, bad symbol, etc.) — the only bucket
+                           that actually warrants investigation
 """
 
 import sys
@@ -54,12 +66,22 @@ def sma_rising(sma_series, lookback):
 # ─────────────────────────────────────────────
 
 def analyze_stock(symbol):
+    """
+    Returns (result, reason).
+    result is a dict on success, None otherwise.
+    reason is "ok" on success, or one of:
+      "no_data", "insufficient_history", "not_qualified",
+      "exception: <ExceptionType>: <message>"
+    """
     try:
         ticker = yf.Ticker(symbol)
         df = ticker.history(period=DATA_PERIOD)
 
-        if df.empty or len(df) < 360:
-            return None
+        if df.empty:
+            return None, "no_data"
+
+        if len(df) < 360:
+            return None, "insufficient_history"
 
         df['SMA_50'] = df['Close'].rolling(window=50).mean()
         df['SMA_200'] = df['Close'].rolling(window=200).mean()
@@ -67,7 +89,7 @@ def analyze_stock(symbol):
 
         df = df.dropna(subset=['SMA_50', 'SMA_200', 'SMA_350'])
         if len(df) < 21:
-            return None
+            return None, "insufficient_history"
 
         latest = df.iloc[-1]
         close = latest['Close']
@@ -88,7 +110,7 @@ def analyze_stock(symbol):
         # ── Stage classification ────────────────────────────────
         # Must have at minimum: Price > 50 > 200
         if not (price_above_50 and gc_50_200):
-            return None
+            return None, "not_qualified"
 
         if gc_200_350:
             # Fully stacked — check if qualifies for Stage 2
@@ -152,7 +174,7 @@ def analyze_stock(symbol):
         gap_200_350 = round(((sma200 - sma350) / sma350) * 100, 2) if gc_200_350 else None
         price_vs_50 = round(((close - sma50) / sma50) * 100, 2)
 
-        return {
+        result = {
             "symbol": symbol.replace(".NS", ""),
             "stage": stage,
             "stage_label": stage_label,
@@ -174,10 +196,10 @@ def analyze_stock(symbol):
             "t1_fresh": t1_fresh,
             "t2_fresh": t2_fresh,
         }
+        return result, "ok"
 
     except Exception as e:
-        print(f"  ✗ Error analyzing {symbol}: {e}")
-        return None
+        return None, f"exception: {type(e).__name__}: {e}"
 
 
 # ─────────────────────────────────────────────
@@ -197,7 +219,13 @@ def load_stock_list(filepath):
 
 def run_scan(symbols):
     results = []
-    errors = 0
+    skip_counts = {
+        "no_data": 0,
+        "insufficient_history": 0,
+        "not_qualified": 0,
+        "exception": 0,
+    }
+    skip_details = []  # symbol-level detail, only for true exceptions
     total = len(symbols)
 
     print(f"\n{'='*60}")
@@ -210,20 +238,32 @@ def run_scan(symbols):
 
     for idx, symbol in enumerate(symbols, 1):
         print(f"  [{idx}/{total}] {symbol}...", end='\r')
-        result = analyze_stock(symbol)
+        result, reason = analyze_stock(symbol)
         if result:
             results.append(result)
+        elif reason.startswith("exception"):
+            skip_counts["exception"] += 1
+            skip_details.append({
+                "symbol": symbol.replace(".NS", ""),
+                "reason": reason,
+            })
+            print(f"  ✗ {symbol}: {reason}")
         else:
-            errors += 1
+            skip_counts[reason] += 1
 
     s1 = [r for r in results if r["stage"] == "Stage 1"]
     s2 = [r for r in results if r["stage"] == "Stage 2"]
     hold = [r for r in results if r["stage"] == "Hold"]
     wait = [r for r in results if r["stage"] == "Wait"]
+
     print(f"\n\n  ✓ Scan complete.")
     print(f"  Stage 2: {len(s2)} | Stage 1: {len(s1)} | Hold: {len(hold)} | Wait: {len(wait)}")
-    print(f"  Errors/no-data/no-qualify: {errors}\n")
-    return results, errors
+    print(f"  Not qualified (no setup): {skip_counts['not_qualified']}")
+    print(f"  Insufficient history: {skip_counts['insufficient_history']}")
+    print(f"  No data: {skip_counts['no_data']}")
+    print(f"  Exceptions: {skip_counts['exception']}\n")
+
+    return results, skip_counts, skip_details
 
 
 # ─────────────────────────────────────────────
@@ -255,7 +295,7 @@ def _table_row(r, show_t2=False):
     return base
 
 
-def generate_markdown(results, total_scanned, errors):
+def generate_markdown(results, total_scanned, skip_counts, skip_details):
     now = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
 
     s1 = [r for r in results if r["stage"] == "Stage 1"]
@@ -273,6 +313,8 @@ def generate_markdown(results, total_scanned, errors):
     s1.sort(key=lambda r: (0 if r["t1_fresh"] else 1, r["t1_cross_age"] or 9999))
     s2.sort(key=lambda r: (0 if r["t2_fresh"] else 1, r["t2_cross_age"] or 9999))
 
+    total_skipped = sum(skip_counts.values())
+
     lines = [
         "# Two-Stage Golden Cross Scanner",
         "",
@@ -284,7 +326,13 @@ def generate_markdown(results, total_scanned, errors):
         f"**Wait:** {len(wait)} | "
         f"**Fresh T1:** {len(fresh_t1)} | "
         f"**Fresh T2:** {len(fresh_t2)} | "
-        f"**Skipped:** {errors}",
+        f"**Skipped:** {total_skipped}",
+        "",
+        f"**Skip breakdown:** "
+        f"Not qualified: {skip_counts['not_qualified']} · "
+        f"Insufficient history: {skip_counts['insufficient_history']} · "
+        f"No data: {skip_counts['no_data']} · "
+        f"Exceptions: {skip_counts['exception']}",
         "",
         "↑ = SMA rising (50: 5d, 200/350: 20d) · ↓ = SMA falling",
         "",
@@ -362,6 +410,16 @@ def generate_markdown(results, total_scanned, errors):
             lines.append(_table_row(r, show_t2=False))
         lines.append("")
 
+    # ── Skipped / exceptions detail ─────────────────────────
+    if skip_details:
+        lines.append("## ⚠️ Exceptions (true script/API errors)")
+        lines.append("")
+        lines.append("| Symbol | Reason |")
+        lines.append("|--------|--------|")
+        for d in skip_details:
+            lines.append(f"| {d['symbol']} | {d['reason']} |")
+        lines.append("")
+
     # ── Legend ───────────────────────────────────────────────
     lines.append("---")
     lines.append("")
@@ -377,6 +435,14 @@ def generate_markdown(results, total_scanned, errors):
     lines.append("| ⚪ Wait | Cross active but SMA not rising | No action | — |")
     lines.append("")
     lines.append("**SMA Direction:** 50 SMA vs 5 days ago · 200/350 SMA vs 20 days ago")
+    lines.append("")
+    lines.append("**Skip reasons:**")
+    lines.append("| Reason | Meaning |")
+    lines.append("|--------|---------|")
+    lines.append("| not_qualified | Real data, just not in a Price>50>200 setup right now (expected/normal) |")
+    lines.append("| insufficient_history | Fewer than 360 bars or 21 clean SMA rows — too-new listing or data gap |")
+    lines.append("| no_data | yfinance returned nothing for this symbol |")
+    lines.append("| exception | Genuine script/API failure — worth investigating |")
     lines.append("")
     lines.append("**Exit Rules:**")
     lines.append("| | Exit trigger | Action |")
@@ -397,10 +463,10 @@ def generate_markdown(results, total_scanned, errors):
 if __name__ == '__main__':
     stock_list = Path(__file__).parent / "nifty500.txt"
     symbols = load_stock_list(stock_list)
-    results, errors = run_scan(symbols)
+    results, skip_counts, skip_details = run_scan(symbols)
 
     out_dir = Path(__file__).parent
-    md = generate_markdown(results, len(symbols), errors)
+    md = generate_markdown(results, len(symbols), skip_counts, skip_details)
     (out_dir / "crossovers.md").write_text(md)
     print(f"  Wrote crossovers.md")
 
@@ -416,7 +482,13 @@ if __name__ == '__main__':
         "stage_2_count": s2_count,
         "hold_count": hold_count,
         "wait_count": wait_count,
-        "errors": errors,
+        "skipped": {
+            "not_qualified": skip_counts["not_qualified"],
+            "insufficient_history": skip_counts["insufficient_history"],
+            "no_data": skip_counts["no_data"],
+            "exception": skip_counts["exception"],
+        },
+        "exception_details": skip_details,
         "stocks": results,
     }
     (out_dir / "crossovers.json").write_text(json.dumps(j, indent=2, default=str))
