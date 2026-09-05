@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Checklist — Golden Cross Monitor</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --amber: #d29922;
+    --red: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 24px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-size: 1rem;
+    margin: 0 0 14px 0;
+    color: var(--accent);
+  }
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+  }
+  .task:last-child { border-bottom: none; }
+  .task input[type=checkbox] {
+    width: 18px; height: 18px; margin-top: 2px; accent-color: var(--green); cursor: pointer;
+  }
+  .task.done span { color: var(--muted); text-decoration: line-through; }
+  .task.sub { margin-left: 22px; font-size: 0.9rem; }
+  .group-header {
+    font-weight: 600; color: var(--text); padding: 10px 0 2px 0; font-size: 0.95rem;
+  }
+  .group-header:not(:first-child) { margin-top: 4px; }
+  .status-row {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+  }
+  .badge {
+    font-size: 0.78rem; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border);
+  }
+  .badge.open { color: var(--amber); border-color: var(--amber); }
+  .badge.closed { color: var(--muted); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .history-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem;
+  }
+  .history-row:last-child { border-bottom: none; }
+  .pct { font-weight: 600; }
+  .pct.high { color: var(--green); }
+  .pct.mid { color: var(--amber); }
+  .pct.low { color: var(--red); }
+  .token-row {
+    display: flex; gap: 8px; margin-top: 14px; font-size: 0.85rem;
+  }
+  .token-row input {
+    flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 6px 8px; font-size: 0.85rem;
+  }
+  .token-row button {
+    background: var(--accent); border: none; color: #0d1117; font-weight: 600;
+    border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;
+  }
+  .note { color: var(--muted); font-size: 0.8rem; margin-top: 10px; line-height: 1.4; }
+  .streak { font-size: 2rem; font-weight: 700; color: var(--green); }
+  .streak-label { color: var(--muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Weekly Checklist</h1>
+  <div class="sub">golden-cross-monitor — habit tracker for the crossover workflow</div>
+
+  <div class="panel" id="live-panel">
+    <div class="status-row">
+      <h2 style="margin:0;">This week</h2>
+      <span class="badge open" id="issue-badge">loading…</span>
+    </div>
+    <div id="task-list">Loading current checklist…</div>
+    <div class="token-row">
+      <input type="password" id="pat-input" placeholder="GitHub PAT (repo scope) — optional, enables checking boxes here">
+      <button onclick="saveToken()">Save</button>
+    </div>
+    <div class="note">
+      Paste a fine-grained PAT scoped to <code>issues:write</code> on this repo to check boxes directly here — it's stored only in this browser's localStorage, never sent anywhere but the GitHub API. Without it, the checklist is read-only here; check items off in the linked Issue instead.
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Consistency</h2>
+    <div style="display:flex; gap:32px; align-items:center; margin-bottom:14px;">
+      <div><div class="streak" id="streak-num">–</div><div class="streak-label">week streak at 100%</div></div>
+      <div><div class="streak" id="avg-num">–</div><div class="streak-label">avg completion (last 8 weeks)</div></div>
+    </div>
+    <div id="history-list">Loading history…</div>
+  </div>
+</div>
+
+<script>
+const OWNER = 'tecmp18';
+const REPO = 'golden-cross-monitor';
+const LABEL = 'weekly-checklist';
+const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+
+function getToken() { return localStorage.getItem('gh_pat') || ''; }
+function saveToken() {
+  const v = document.getElementById('pat-input').value.trim();
+  if (v) { localStorage.setItem('gh_pat', v); document.getElementById('pat-input').value = ''; alert('Saved locally.'); loadIssue(); }
+}
+
+function ghHeaders() {
+  const h = { 'Accept': 'application/vnd.github+json' };
+  const t = getToken();
+  if (t) h['Authorization'] = `Bearer ${t}`;
+  return h;
+}
+
+// Returns a flat list of render items: either {type:'header', text} or
+// {type:'task', idx, done, text, indented}
+function parseRenderItems(body) {
+  const lines = (body || '').split('\n');
+  const items = [];
+  lines.forEach((line, idx) => {
+    const headerMatch = line.match(/^\*\*(?:\d+\.\s*)?(.+?)\*\*$/);
+    if (headerMatch && !/\[[ xX]\]/.test(line)) {
+      items.push({ type: 'header', text: headerMatch[1].trim() });
+      return;
+    }
+    const cbMatch = line.match(/^(\s*)-\s*\[([ xX])\]\s*(.*)$/);
+    if (!cbMatch) return;
+    items.push({
+      type: 'task',
+      idx,
+      indented: cbMatch[1].length > 0,
+      done: cbMatch[2].toLowerCase() === 'x',
+      text: cbMatch[3].trim()
+    });
+  });
+  return items;
+}
+
+let currentIssue = null;
+
+async function loadIssue() {
+  try {
+    const res = await fetch(`${API}/issues?state=open&labels=${LABEL}&per_page=1`, { headers: ghHeaders() });
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      document.getElementById('issue-badge').textContent = 'none open';
+      document.getElementById('task-list').innerHTML = '<div class="note">No open checklist issue found yet — it\'s created automatically each Monday.</div>';
+      return;
+    }
+    currentIssue = data[0];
+    document.getElementById('issue-badge').innerHTML =
+      `<a href="${currentIssue.html_url}" target="_blank" style="color:inherit">#${currentIssue.number} on GitHub ↗</a>`;
+
+    const items = parseRenderItems(currentIssue.body);
+    const canWrite = !!getToken();
+    document.getElementById('task-list').innerHTML = items.map(item => {
+      if (item.type === 'header') {
+        return `<div class="group-header">${item.text}</div>`;
+      }
+      const cls = `task ${item.done ? 'done' : ''} ${item.indented ? 'sub' : ''}`;
+      return `
+        <label class="${cls}">
+          <input type="checkbox" ${item.done ? 'checked' : ''} ${canWrite ? '' : 'disabled'} onchange="toggleTask(${item.idx}, this.checked)">
+          <span>${item.text}</span>
+        </label>`;
+    }).join('');
+  } catch (e) {
+    document.getElementById('task-list').innerHTML = '<div class="note">Couldn\'t reach GitHub API (rate limit or network). Try again shortly, or check the Issue directly.</div>';
+  }
+}
+
+async function toggleTask(lineIdx, checked) {
+  if (!currentIssue) return;
+  const lines = currentIssue.body.split('\n');
+  lines[lineIdx] = lines[lineIdx].replace(/\[[ xX]\]/, checked ? '[x]' : '[ ]');
+  const newBody = lines.join('\n');
+  const res = await fetch(`${API}/issues/${currentIssue.number}`, {
+    method: 'PATCH',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body: newBody })
+  });
+  if (res.ok) {
+    currentIssue.body = newBody;
+  } else {
+    alert('Failed to save to GitHub — check your token has issues:write on this repo.');
+    loadIssue();
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/checklist_log.json`);
+    if (!res.ok) throw new Error('no log yet');
+    const log = await res.json();
+    const recent = log.slice(-8).reverse();
+
+    document.getElementById('history-list').innerHTML = recent.map(r => {
+      const cls = r.completion_pct === 100 ? 'high' : r.completion_pct >= 60 ? 'mid' : 'low';
+      return `<div class="history-row">
+        <span>${r.week_of}</span>
+        <span class="pct ${cls}">${r.completed_tasks}/${r.total_tasks} (${r.completion_pct}%)</span>
+      </div>`;
+    }).join('') || '<div class="note">No completed weeks logged yet.</div>';
+
+    // streak: consecutive 100% weeks counting back from most recent
+    let streak = 0;
+    for (const r of [...log].reverse()) {
+      if (r.completion_pct === 100) streak++; else break;
+    }
+    document.getElementById('streak-num').textContent = streak;
+
+    const avgWindow = log.slice(-8);
+    const avg = avgWindow.length
+      ? Math.round(avgWindow.reduce((s, r) => s + r.completion_pct, 0) / avgWindow.length)
+      : 0;
+    document.getElementById('avg-num').textContent = avgWindow.length ? avg + '%' : '–';
+  } catch (e) {
+    document.getElementById('history-list').innerHTML = '<div class="note">No history yet — the first Monday audit will populate this.</div>';
+  }
+}
+
+loadIssue();
+loadHistory();
+</script>
+</body>
+</html>
