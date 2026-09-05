@@ -1,0 +1,162 @@
+name: Weekly Checklist
+
+on:
+  schedule:
+    # Every Monday 03:00 UTC (~8:30am IST) — adjust if you want it later/earlier
+    - cron: '0 3 * * MON'
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  audit-and-create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit previous week's checklist issue and open this week's
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'checklist_log.json';
+
+            // Each task is either a plain string (single checkbox) or
+            // { title, subtasks: [...] } — title renders as a bold label,
+            // each subtask gets its own checkbox.
+            const TASKS = [
+              "Run crossover_scan.py and generate fresh JSON",
+              "Sanity-check the run (total_scanned vs errors, timestamp current, error rate vs baseline)",
+              "Filter JSON per tranche-entry-rules.md checklist (freshness, SMA direction, whipsaw, extension, gap)",
+              "Sort survivors into Tier A (Fresh T2) / Tier B (Fresh T1) / Excluded (with reason)",
+              "Check Hold list for sma50_rising = False (early warning flags)",
+              {
+                title: "Review status.json holdings for possible redeployment",
+                subtasks: [
+                  "Pull SMA data for current holdings (falling 50 SMA, thin/fragile 200/350 gap)",
+                  "Chart-check each flagged holding to confirm the weakness",
+                  "Look up EPS/PE quadrant classification for each flagged holding",
+                  "Compare weakest holdings against this week's Tier A/B candidates for a possible swap"
+                ]
+              },
+              {
+                title: "Chart review of shortlisted candidates",
+                subtasks: [
+                  "Pull chart for each shortlisted Tier A/B name",
+                  "Confirm clean trend structure (support/resistance, no rejection candles, no chop)",
+                  "Check EPS/PE quadrant classification for each — confirm BEST or GREAT",
+                  "Note any shortlisted name missing from watchlist_quadrant.csv (stale monthly refresh)"
+                ]
+              },
+              "News/regulatory catalyst check before any entry decision",
+              "Buy/pass decision + place GTT orders in Zerodha if entering"
+            ];
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const LABEL = 'weekly-checklist';
+
+            // Ensure the label exists — issue creation fails with an unknown label
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: LABEL });
+            } catch (e) {
+              await github.rest.issues.createLabel({
+                owner, repo, name: LABEL, color: '58a6ff',
+                description: 'Recurring weekly crossover-workflow checklist'
+              });
+            }
+
+            // --- helpers ---
+            function isoDate(d) { return d.toISOString().slice(0, 10); }
+            function parseCheckboxes(body) {
+              const allLines = (body || '').split('\n');
+              let total = 0, completed = 0;
+              const missed = [];
+              let parent = null;
+              for (const line of allLines) {
+                const headerMatch = line.match(/^\*\*(?:\d+\.\s*)?(.+?)\*\*$/);
+                if (headerMatch && !/\[[ xX]\]/.test(line)) { parent = headerMatch[1].trim(); continue; }
+                const cbMatch = line.match(/^(\s*)-\s*\[([ xX])\]\s*(.*)$/);
+                if (!cbMatch) continue;
+                const isIndented = cbMatch[1].length > 0;
+                if (!isIndented) parent = null; // top-level task — not part of a group
+                total++;
+                const isDone = cbMatch[2].toLowerCase() === 'x';
+                if (isDone) completed++;
+                else missed.push(parent ? `${parent}: ${cbMatch[3].trim()}` : cbMatch[3].trim());
+              }
+              return { total, completed, missed };
+            }
+
+            // --- 1. find last open weekly-checklist issue and audit it ---
+            const openIssues = await github.rest.issues.listForRepo({
+              owner, repo, state: 'open', labels: LABEL, per_page: 10
+            });
+
+            let log = [];
+            try {
+              log = JSON.parse(fs.readFileSync(path, 'utf8'));
+            } catch (e) { log = []; }
+
+            for (const issue of openIssues.data) {
+              const { total, completed, missed } = parseCheckboxes(issue.body);
+              const pct = total ? Math.round((completed / total) * 100) : 0;
+
+              log.push({
+                week_of: issue.title.replace('Weekly Checklist — ', ''),
+                issue_number: issue.number,
+                total_tasks: total,
+                completed_tasks: completed,
+                completion_pct: pct,
+                missed_tasks: missed,
+                closed_at: new Date().toISOString()
+              });
+
+              await github.rest.issues.update({
+                owner, repo, issue_number: issue.number, state: 'closed'
+              });
+
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issue.number,
+                body: pct === 100
+                  ? `✅ Closed out at 100% — process ran clean this week.`
+                  : `⚠️ Closed at ${pct}% (${completed}/${total}). Missed: ${missed.join('; ') || 'n/a'}`
+              });
+            }
+
+            fs.writeFileSync(path, JSON.stringify(log, null, 2) + '\n');
+
+            // --- 2. open this week's fresh checklist issue ---
+            const weekOf = isoDate(new Date());
+            const taskLines = [];
+            TASKS.forEach((t, i) => {
+              const n = i + 1;
+              if (typeof t === 'string') {
+                taskLines.push(`- [ ] ${n}. ${t}`);
+              } else {
+                taskLines.push(`**${n}. ${t.title}**`);
+                t.subtasks.forEach(st => taskLines.push(`  - [ ] ${st}`));
+              }
+            });
+            const body = [
+              `**Week of ${weekOf}** — check items off as you complete them. This issue is audited automatically next Monday and logged to \`checklist_log.json\`.`,
+              '',
+              ...taskLines
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner, repo,
+              title: `Weekly Checklist — ${weekOf}`,
+              body,
+              labels: [LABEL]
+            });
+
+      - name: Commit checklist_log.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add checklist_log.json
+          git diff --staged --quiet || git commit -m "Log weekly checklist completion [automated]"
+          git push
