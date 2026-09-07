@@ -202,6 +202,14 @@ def compute_signals(df, symbol="TEST"):
     # Informational whipsaw flag (Patch A).
     t2_before_t1 = bool(last_t1 is not None and last_t2 is not None and last_t2 < last_t1)
 
+    # Gap/extension metrics — moved up from their original position (just
+    # before the result dict) because the Patch B block below needs them.
+    # BUGFIX: this was the cause of the UnboundLocalError seen in the first
+    # live Patch B run — these were computed after the block that uses them.
+    gap_50_200 = round(((sma50 - sma200) / sma200) * 100, 2)
+    gap_200_350 = round(((sma200 - sma350) / sma350) * 100, 2) if gc_200_350 else None
+    price_vs_50 = round(((close - sma50) / sma50) * 100, 2)
+
     # ── PATCH B — technical_state / position_state (see module docstring) ──
     #
     # t1_* fields are only meaningful when NOT gc_200_350 (200 < 350), since
@@ -294,11 +302,6 @@ def compute_signals(df, symbol="TEST"):
         freshness = "🆕 Fresh T1"
     else:
         freshness = "Established"
-
-    # Gap metrics
-    gap_50_200 = round(((sma50 - sma200) / sma200) * 100, 2)
-    gap_200_350 = round(((sma200 - sma350) / sma350) * 100, 2) if gc_200_350 else None
-    price_vs_50 = round(((close - sma50) / sma50) * 100, 2)
 
     result = {
         "symbol": symbol.replace(".NS", ""),
