@@ -199,10 +199,93 @@ def compute_signals(df, symbol="TEST"):
         t2_cross_date = last_t2.strftime("%Y-%m-%d")
         t2_fresh = t2_cross_age <= CROSS_LOOKBACK
 
-    # Informational whipsaw flag (Patch A) — does NOT gate stage/eligibility.
-    # Patch B decides how this feeds the T1_WHIPSAW state and whether a
-    # t1_whipsaw_type (BROKEN_STACK / FAST_RECROSS) diagnostic is added.
+    # Informational whipsaw flag (Patch A).
     t2_before_t1 = bool(last_t1 is not None and last_t2 is not None and last_t2 < last_t1)
+
+    # ── PATCH B — technical_state / position_state (see module docstring) ──
+    #
+    # t1_* fields are only meaningful when NOT gc_200_350 (200 < 350), since
+    # the T1 hard gate itself requires that condition — a currently-stacked
+    # stock has already moved past the T1 entry window entirely, so its
+    # t1_state is None rather than a rejection.
+    #
+    # t2_* fields are only meaningful when gc_200_350 (full stack), mirroring
+    # the same logic for the T2 hard gate.
+    t1_state = None
+    t1_price_tier = None
+    t1_gap_class = None
+    t1_technical_eligible = False
+    t1_position = 0
+
+    t2_state = None
+    t2_gap_class = None
+    t2_technical_eligible = False
+    # t2_position is NOT determined here. Whether a valid T2 adds 0.5 (T1
+    # already held) or opens a fresh 1.0 (T1 never held / was rejected) is a
+    # portfolio fact — did the person actually hold T1 for this name — which
+    # this scanner has no way to know. That decision stays a manual weekly
+    # review step; t2_position is left None deliberately rather than guessed.
+    t2_position = None
+
+    if not gc_200_350:
+        # T1 territory
+        if price_vs_50 <= 2:
+            t1_price_tier = "FRESH_CROSS"
+        elif price_vs_50 <= 5:
+            t1_price_tier = "EARLY_CONFIRM"
+        else:
+            t1_price_tier = "EXTENDED"
+
+        if gap_50_200 < 1.5:
+            t1_gap_class = "FRAGILE"
+        elif gap_50_200 < 3:
+            t1_gap_class = "DEVELOPING"
+        else:
+            t1_gap_class = "HEALTHY"
+
+        if not (r50 and r200):
+            t1_state = "T1_INVALID"
+        elif not t1_fresh:
+            t1_state = "T1_EXPIRED"
+        elif t2_before_t1:
+            t1_state = "T1_WHIPSAW"
+        elif price_vs_50 > 5:
+            t1_state = "T1_EXTENDED"
+        elif t1_gap_class == "FRAGILE":
+            t1_state = "T1_FRAGILE"
+        else:
+            t1_state = "T1_VALID"
+
+        t1_technical_eligible = t1_state in ("T1_VALID", "T1_FRAGILE")
+        t1_position = 0.5 if t1_technical_eligible else 0
+
+    else:
+        # T2 territory
+        if gap_200_350 is not None:
+            if gap_200_350 < 1.5:
+                t2_gap_class = "FRAGILE"
+            elif gap_200_350 < 3:
+                t2_gap_class = "DEVELOPING"
+            else:
+                t2_gap_class = "HEALTHY"
+
+        if not (r50 and r200):
+            t2_state = "T2_INVALID"
+        elif not t2_fresh:
+            t2_state = "T2_EXPIRED"
+        elif t2_gap_class == "FRAGILE":
+            t2_state = "T2_FRAGILE"
+        else:
+            t2_state = "T2_VALID"
+
+        t2_technical_eligible = t2_state in ("T2_VALID", "T2_FRAGILE")
+
+    # Diagnostic only — NOT a T1 gate outcome. A currently-stacked (Stage 2)
+    # name whose fast leg (50/200) previously broke and re-crossed while the
+    # slow leg (200/350) stayed intact throughout. This is a Hold-list
+    # stability flag, not an entry decision — the stock never entered T1-gate
+    # evaluation above because it's currently stacked.
+    fast_leg_recross_while_stacked = bool(gc_200_350 and t2_before_t1)
 
     # Freshness label
     if stage == "Stage 2" and t2_fresh:
@@ -238,7 +321,24 @@ def compute_signals(df, symbol="TEST"):
         "t2_cross_age": t2_cross_age,
         "t1_fresh": t1_fresh,
         "t2_fresh": t2_fresh,
-        "t2_before_t1": t2_before_t1,     # NEW (Patch A) — informational only
+        "t2_before_t1": t2_before_t1,                              # Patch A
+        # ── Patch B: technical_state / position_state ──
+        "t1_state": t1_state,
+        "t1_price_tier": t1_price_tier,
+        "t1_gap_class": t1_gap_class,
+        "t1_technical_eligible": t1_technical_eligible,
+        "t1_position": t1_position,
+        "t2_state": t2_state,
+        "t2_gap_class": t2_gap_class,
+        "t2_technical_eligible": t2_technical_eligible,
+        "t2_position": t2_position,          # None — portfolio fact, not computable here
+        "fast_leg_recross_while_stacked": fast_leg_recross_while_stacked,
+        # External gates — always None from this scanner. Filled in during
+        # the manual weekly review (Sections 5/6 of the rules). Never
+        # inferred here; a technically-eligible name can still be
+        # SUPPRESSED at review time without this scanner knowing why.
+        "quadrant_status": None,
+        "news_status": None,
     }
     return result, "ok"
 
@@ -372,6 +472,28 @@ def _table_row(r, show_t2=False):
     return base
 
 
+def _price_display(r):
+    return f"₹{r['ltp']} | ₹{r['sma50']} {_direction(r['sma50_rising'])} | ₹{r['sma200']} {_direction(r['sma200_rising'])}"
+
+
+def _t1_eligible_row(r):
+    return (f"| {r['symbol']} | ₹{r['ltp']} | {r['t1_price_tier']} | {r['t1_gap_class']} "
+            f"| {r['t1_cross_date']} | {r['t1_cross_age']}d | {r['gap_50_200_pct']}% |")
+
+
+def _t1_rejected_row(r):
+    reason_detail = {
+        "T1_EXTENDED": f"{r['price_vs_50_pct']}% above 50 SMA (cap: 5%)",
+        "T1_WHIPSAW": f"prior T2 cross {r['t2_cross_date']} predates this T1 ({r['t1_cross_date']})",
+    }.get(r["t1_state"], "")
+    return f"| {r['symbol']} | ₹{r['ltp']} | {r['t1_cross_date']} | {r['t1_cross_age']}d | {reason_detail} |"
+
+
+def _t2_eligible_row(r):
+    return (f"| {r['symbol']} | ₹{r['ltp']} | {r['t2_gap_class']} "
+            f"| {r['t2_cross_date']} | {r['t2_cross_age']}d | {r['gap_200_350_pct']}% |")
+
+
 def generate_markdown(results, total_scanned, skip_counts, skip_details):
     now = datetime.now(IST).strftime("%Y-%m-%d %H:%M IST")
 
@@ -380,12 +502,21 @@ def generate_markdown(results, total_scanned, skip_counts, skip_details):
     hold = [r for r in results if r["stage"] == "Hold"]
     wait = [r for r in results if r["stage"] == "Wait"]
 
-    fresh_t1 = [r for r in results if r["t1_fresh"] and r["stage"] == "Stage 1"]
-    fresh_t2 = [r for r in results if r["t2_fresh"] and r["stage"] == "Stage 2"]
+    # Patch B: Fresh entries are now driven by t1_state / t2_state rather than
+    # reconstructing eligibility from stage + t1_fresh. Within the "fresh"
+    # population (t1_fresh / t2_fresh True on a Strict-valid stock), split
+    # into technically-eligible vs rejected-by-reason so a rejected name can
+    # never render as a live "Buy Tranche 1" candidate again.
+    fresh_t1_all = [r for r in results if r["t1_fresh"] and r["stage"] == "Stage 1"]
+    fresh_t1_eligible = [r for r in fresh_t1_all if r["t1_technical_eligible"]]
+    fresh_t1_rejected = [r for r in fresh_t1_all if not r["t1_technical_eligible"]]
 
-    # Sort fresh entries by cross age — latest (smallest age) first
-    fresh_t1.sort(key=lambda r: r["t1_cross_age"] if r["t1_cross_age"] is not None else 9999)
-    fresh_t2.sort(key=lambda r: r["t2_cross_age"] if r["t2_cross_age"] is not None else 9999)
+    fresh_t2_all = [r for r in results if r["t2_fresh"] and r["stage"] == "Stage 2"]
+    fresh_t2_eligible = [r for r in fresh_t2_all if r["t2_technical_eligible"]]
+    fresh_t2_rejected = [r for r in fresh_t2_all if not r["t2_technical_eligible"]]
+
+    fresh_t1_eligible.sort(key=lambda r: r["t1_cross_age"] if r["t1_cross_age"] is not None else 9999)
+    fresh_t2_eligible.sort(key=lambda r: r["t2_cross_age"] if r["t2_cross_age"] is not None else 9999)
 
     s1.sort(key=lambda r: (0 if r["t1_fresh"] else 1, r["t1_cross_age"] or 9999))
     s2.sort(key=lambda r: (0 if r["t2_fresh"] else 1, r["t2_cross_age"] or 9999))
@@ -401,8 +532,8 @@ def generate_markdown(results, total_scanned, skip_counts, skip_details):
         f"**Stage 1:** {len(s1)} | "
         f"**Hold:** {len(hold)} | "
         f"**Wait:** {len(wait)} | "
-        f"**Fresh T1:** {len(fresh_t1)} | "
-        f"**Fresh T2:** {len(fresh_t2)} | "
+        f"**T1 Technically Eligible:** {len(fresh_t1_eligible)} | "
+        f"**T2 Technically Eligible:** {len(fresh_t2_eligible)} | "
         f"**Skipped:** {total_skipped}",
         "",
         f"**Skip breakdown:** "
@@ -413,35 +544,77 @@ def generate_markdown(results, total_scanned, skip_counts, skip_details):
         "",
         "↑ = SMA rising (50: 5 bars, 200/350: 20 bars) · ↓ = SMA falling",
         "",
+        "> **Note:** the tables below reflect `t1_technical_eligible` / `t2_technical_eligible` "
+        "(Patch B state machine), not raw freshness. A name can be `t1_fresh` and still be "
+        "rejected — see the Rejected tables for why. Fundamental quadrant and news checks "
+        "(`quadrant_status`, `news_status`) are never computed here — they remain a manual "
+        "weekly-review step regardless of technical eligibility.",
+        "",
         "---",
         "",
     ]
 
-    # ── Fresh entries ───────────────────────────────────────
-    if fresh_t1 or fresh_t2:
-        lines.append(f"## 🆕 Fresh Entries (last {CROSS_LOOKBACK} trading bars)")
+    # ── Fresh T1 ─────────────────────────────────────────────
+    lines.append(f"## 🆕 Fresh T1 (last {CROSS_LOOKBACK} trading bars, Strict gate)")
+    lines.append("")
+
+    lines.append(f"### ✅ Technically Eligible ({len(fresh_t1_eligible)})")
+    lines.append("")
+    if fresh_t1_eligible:
+        lines.append("| Symbol | LTP | Price Tier | Gap Class | T1 Cross | Age | 50/200 Gap |")
+        lines.append("|--------|-----|------------|-----------|----------|-----|------------|")
+        for r in fresh_t1_eligible:
+            lines.append(_t1_eligible_row(r))
+    else:
+        lines.append("*None this week*")
+    lines.append("")
+
+    if fresh_t1_rejected:
+        lines.append(f"### ❌ Rejected ({len(fresh_t1_rejected)})")
+        lines.append("")
+        for reason in ("T1_EXTENDED", "T1_WHIPSAW", "T1_INVALID", "T1_EXPIRED"):
+            group = [r for r in fresh_t1_rejected if r["t1_state"] == reason]
+            if not group:
+                continue
+            lines.append(f"**{reason}** ({len(group)})")
+            lines.append("")
+            lines.append("| Symbol | LTP | T1 Cross | Age | Reason |")
+            lines.append("|--------|-----|----------|-----|--------|")
+            for r in group:
+                lines.append(_t1_rejected_row(r))
+            lines.append("")
+
+    lines.append("---")
+    lines.append("")
+
+    # ── Fresh T2 ─────────────────────────────────────────────
+    lines.append(f"## 🆕 Fresh T2 (last {CROSS_LOOKBACK} trading bars, Strict gate)")
+    lines.append("")
+    lines.append(f"### ✅ Technically Eligible ({len(fresh_t2_eligible)})")
+    lines.append("")
+    if fresh_t2_eligible:
+        lines.append("| Symbol | LTP | Gap Class | T2 Cross | Age | 200/350 Gap |")
+        lines.append("|--------|-----|-----------|----------|-----|-------------|")
+        for r in fresh_t2_eligible:
+            lines.append(_t2_eligible_row(r))
+        lines.append("")
+        lines.append("> Sizing (0.5 add vs 1.0 standalone) depends on whether T1 is already held for "
+                      "each name — a portfolio fact this scanner does not know. Check manually before sizing.")
+    else:
+        lines.append("*None this week*")
+    lines.append("")
+
+    if fresh_t2_rejected:
+        lines.append(f"### ❌ Rejected ({len(fresh_t2_rejected)})")
+        lines.append("")
+        lines.append("| Symbol | LTP | T2 State | T2 Cross | Age |")
+        lines.append("|--------|-----|----------|----------|-----|")
+        for r in fresh_t2_rejected:
+            lines.append(f"| {r['symbol']} | ₹{r['ltp']} | {r['t2_state']} | {r['t2_cross_date']} | {r['t2_cross_age']}d |")
         lines.append("")
 
-        if fresh_t2:
-            lines.append("### Add Tranche 2 — 200 just crossed above 350")
-            lines.append("")
-            lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | T2 Cross | T2 Age | 50/200 Gap | 200/350 Gap |")
-            lines.append("|--------|-----|--------|---------|---------|----------|--------|----------|--------|------------|-------------|")
-            for r in fresh_t2:
-                lines.append(_table_row(r, show_t2=True))
-            lines.append("")
-
-        if fresh_t1:
-            lines.append("### Buy Tranche 1 — 50 just crossed above 200")
-            lines.append("")
-            lines.append("| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | 50/200 Gap | 200/350 Gap |")
-            lines.append("|--------|-----|--------|---------|---------|----------|--------|------------|-------------|")
-            for r in fresh_t1:
-                lines.append(_table_row(r, show_t2=False))
-            lines.append("")
-
-        lines.append("---")
-        lines.append("")
+    lines.append("---")
+    lines.append("")
 
     # ── Stage 2 ─────────────────────────────────────────────
     lines.append("## 🟢 Stage 2 — Full Position (Price > 50↑ > 200↑ > 350)")
@@ -505,11 +678,32 @@ def generate_markdown(results, total_scanned, skip_counts, skip_details):
     lines.append("")
     lines.append("| Status | Condition | Action | Position |")
     lines.append("|--------|-----------|--------|----------|")
-    lines.append("| 🆕 Fresh T1 | 50/200 bullish cross ≤30 trading bars | Candidate for T1 | — |")
-    lines.append("| 🟡 Stage 1 | Price > 50 > 200, 200 < 350, 50↑ 200↑ | Buy T1 | 50% |")
-    lines.append("| 🆕 Fresh T2 | 200/350 bullish cross ≤30 trading bars | Candidate for T2 | — |")
-    lines.append("| 🟢 Stage 2 | Price > 50 > 200 > 350, 50↑ 200↑ | Add T2 | 100% |")
+    lines.append("| 🟡 Stage 1 | Price > 50 > 200, 200 < 350, 50↑ 200↑ | Technical formation only | — |")
+    lines.append("| 🟢 Stage 2 | Price > 50 > 200 > 350, 50↑ 200↑ | Technical formation only | — |")
     lines.append("| ⚪ Wait | Cross active but SMA not rising | No action | — |")
+    lines.append("")
+    lines.append("**T1 state (evaluated in this priority order — first match wins):**")
+    lines.append("| State | Meaning |")
+    lines.append("|-------|---------|")
+    lines.append("| T1_INVALID | 50 and/or 200 SMA not rising (fails Strict gate) |")
+    lines.append("| T1_EXPIRED | Cross exists but is stale (outside 30-bar freshness window) |")
+    lines.append("| T1_EXTENDED | Price >5% above 50 SMA — outside the early-entry band |")
+    lines.append("| T1_WHIPSAW | Otherwise eligible, but a prior T2 cross predates this T1 (reverted-stack re-entry) |")
+    lines.append("| T1_FRAGILE | Eligible — 50/200 gap <1.5%, flagged as fragile |")
+    lines.append("| T1_VALID | Eligible — clean transition |")
+    lines.append("")
+    lines.append("**T2 state:**")
+    lines.append("| State | Meaning |")
+    lines.append("|-------|---------|")
+    lines.append("| T2_INVALID | 50 and/or 200 SMA not rising |")
+    lines.append("| T2_EXPIRED | Cross exists but is stale |")
+    lines.append("| T2_FRAGILE | Eligible — 200/350 gap <1.5% |")
+    lines.append("| T2_VALID | Eligible — Developing or Healthy gap |")
+    lines.append("")
+    lines.append("Only `T1_VALID`/`T1_FRAGILE` and `T2_VALID`/`T2_FRAGILE` are technically eligible. "
+                  "Technical eligibility is necessary but not sufficient — the Fundamental Quadrant "
+                  "Gate and news/catalyst check (never computed by this scanner) still apply before "
+                  "any entry decision.")
     lines.append("")
     lines.append("**SMA Direction:** 50 SMA vs 5 trading bars ago · 200/350 SMA vs 20 trading bars ago")
     lines.append("")
