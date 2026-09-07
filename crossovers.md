@@ -1,214 +1,195 @@
 # Two-Stage Golden Cross Scanner
 
-**Last updated:** 2026-09-07 11:39 IST
-**Scanned:** 493 | **Stage 2:** 77 | **Stage 1:** 34 | **Hold:** 9 | **Wait:** 31 | **Fresh T1:** 11 | **Fresh T2:** 5 | **Skipped:** 342
+**Last updated:** 2026-09-07 12:05 IST
+**Scanned:** 493 | **Stage 2:** 0 | **Stage 1:** 0 | **Hold:** 0 | **Wait:** 0 | **T1 Technically Eligible:** 0 | **T2 Technically Eligible:** 0 | **Skipped:** 493
 
-**Skip breakdown:** Not qualified: 339 · Insufficient history: 2 · No data: 1 · Exceptions: 0
+**Skip breakdown:** Not qualified: 339 · Insufficient history: 2 · No data: 1 · Exceptions: 151
 
 ↑ = SMA rising (50: 5 bars, 200/350: 20 bars) · ↓ = SMA falling
 
+> **Note:** the tables below reflect `t1_technical_eligible` / `t2_technical_eligible` (Patch B state machine), not raw freshness. A name can be `t1_fresh` and still be rejected — see the Rejected tables for why. Fundamental quadrant and news checks (`quadrant_status`, `news_status`) are never computed here — they remain a manual weekly-review step regardless of technical eligibility.
+
 ---
 
-## 🆕 Fresh Entries (last 30 trading bars)
+## 🆕 Fresh T1 (last 30 trading bars, Strict gate)
 
-### Add Tranche 2 — 200 just crossed above 350
+### ✅ Technically Eligible (0)
 
-| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | T2 Cross | T2 Age | 50/200 Gap | 200/350 Gap |
-|--------|-----|--------|---------|---------|----------|--------|----------|--------|------------|-------------|
-| JINDALSAW | ₹309.15 | ₹273.49 ↑ | ₹216.96 ↑ | ₹214.4 ↑ | 2026-04-21 | 99d | 2026-09-01 | 4d | 26.06% | 1.19% |
-| FLUOROCHEM | ₹4519.3 | ₹4419.12 ↑ | ₹3705.68 ↑ | ₹3679.19 ↑ | 2026-06-03 | 68d | 2026-08-26 | 8d | 19.25% | 0.72% |
-| BALAMINES | ₹2563.7 | ₹2232.33 ↑ | ₹1548.64 ↑ | ₹1516.43 ↑ | 2026-05-26 | 74d | 2026-08-12 | 18d | 44.15% | 2.12% |
-| PNBHOUSING | ₹1174.7 | ₹1113.36 ↑ | ₹966.77 ↑ | ₹956.64 ↑ | 2026-05-12 | 84d | 2026-08-06 | 22d | 15.16% | 1.06% |
-| AKUMS | ₹759.9 | ₹705.21 ↑ | ₹542.42 ↑ | ₹525.91 ↑ | 2026-04-10 | 104d | 2026-08-05 | 23d | 30.01% | 3.14% |
+*None this week*
 
-### Buy Tranche 1 — 50 just crossed above 200
+---
 
-| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | 50/200 Gap | 200/350 Gap |
-|--------|-----|--------|---------|---------|----------|--------|------------|-------------|
-| POLICYBZR | ₹1814.0 | ₹1674.76 ↑ | ₹1652.07 ↑ | ₹1705.66 ↑ | 2026-08-31 | 5d | 1.37% | — |
-| JYOTICNC | ₹1010.45 | ₹859.43 ↑ | ₹822.58 ↑ | ₹910.25 ↓ | 2026-08-27 | 7d | 4.48% | — |
-| PVRINOX | ₹1145.7 | ₹1115.85 ↑ | ₹1035.32 ↑ | ₹1040.82 ↑ | 2026-08-13 | 17d | 7.78% | — |
-| GLAXO | ₹2991.9 | ₹2670.44 ↑ | ₹2442.52 ↑ | ₹2611.39 ↑ | 2026-08-10 | 20d | 9.33% | — |
-| COFORGE | ₹1937.1 | ₹1698.02 ↑ | ₹1517.05 ↑ | ₹1597.81 ↑ | 2026-08-07 | 21d | 11.93% | — |
-| KALYANKJIL | ₹595.9 | ₹556.97 ↑ | ₹451.56 ↑ | ₹484.75 ↑ | 2026-08-04 | 24d | 23.34% | — |
-| CONCORDBIO | ₹1440.8 | ₹1388.53 ↑ | ₹1256.99 ↑ | ₹1426.1 ↓ | 2026-07-29 | 28d | 10.46% | — |
-| LODHA | ₹1208.1 | ₹1193.87 ↑ | ₹1016.04 ↑ | ₹1130.26 ↑ | 2026-07-29 | 28d | 17.5% | — |
-| PETRONET | ₹290.55 | ₹281.96 ↑ | ₹278.05 ↑ | ₹279.18 ↑ | 2026-07-28 | 29d | 1.41% | — |
-| ICICIBANK | ₹1424.3 | ₹1418.95 ↑ | ₹1346.08 ↑ | ₹1368.37 ↑ | 2026-07-28 | 29d | 5.41% | — |
-| SUNDRMFAST | ₹1205.9 | ₹1069.01 ↑ | ₹925.16 ↑ | ₹948.33 ↑ | 2026-07-28 | 29d | 15.55% | — |
+## 🆕 Fresh T2 (last 30 trading bars, Strict gate)
+
+### ✅ Technically Eligible (0)
+
+*None this week*
 
 ---
 
 ## 🟢 Stage 2 — Full Position (Price > 50↑ > 200↑ > 350)
 
-| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | T2 Cross | T2 Age | 50/200 Gap | 200/350 Gap |
-|--------|-----|--------|---------|---------|----------|--------|----------|--------|------------|-------------|
-| JINDALSAW | ₹309.15 | ₹273.49 ↑ | ₹216.96 ↑ | ₹214.4 ↑ | 2026-04-21 | 99d | 2026-09-01 | 4d | 26.06% | 1.19% |
-| FLUOROCHEM | ₹4519.3 | ₹4419.12 ↑ | ₹3705.68 ↑ | ₹3679.19 ↑ | 2026-06-03 | 68d | 2026-08-26 | 8d | 19.25% | 0.72% |
-| BALAMINES | ₹2563.7 | ₹2232.33 ↑ | ₹1548.64 ↑ | ₹1516.43 ↑ | 2026-05-26 | 74d | 2026-08-12 | 18d | 44.15% | 2.12% |
-| PNBHOUSING | ₹1174.7 | ₹1113.36 ↑ | ₹966.77 ↑ | ₹956.64 ↑ | 2026-05-12 | 84d | 2026-08-06 | 22d | 15.16% | 1.06% |
-| AKUMS | ₹759.9 | ₹705.21 ↑ | ₹542.42 ↑ | ₹525.91 ↑ | 2026-04-10 | 104d | 2026-08-05 | 23d | 30.01% | 3.14% |
-| FINCABLES | ₹1227.2 | ₹1119.95 ↑ | ₹939.97 ↑ | ₹908.25 ↑ | 2026-04-09 | 106d | 2026-07-22 | 33d | 19.15% | 3.49% |
-| OFSS | ₹11750.0 | ₹11553.61 ↑ | ₹8878.94 ↑ | ₹8638.84 ↑ | 2026-05-21 | 77d | 2026-06-26 | 51d | 30.12% | 2.78% |
-| WELSPUNLIV | ₹212.75 | ₹172.85 ↑ | ₹142.63 ↑ | ₹137.09 ↑ | 2026-05-28 | 72d | 2026-06-24 | 53d | 21.19% | 4.04% |
-| ELGIEQUIP | ₹647.2 | ₹596.28 ↑ | ₹533.33 ↑ | ₹518.65 ↑ | 2026-04-15 | 103d | 2026-06-17 | 58d | 11.8% | 2.83% |
-| INDUSINDBK | ₹1015.2 | ₹1008.42 ↑ | ₹915.04 ↑ | ₹864.85 ↑ | — | — | 2026-06-12 | 61d | 10.21% | 5.8% |
-| HFCL | ₹243.01 | ₹218.07 ↑ | ₹129.36 ↑ | ₹107.74 ↑ | 2026-04-20 | 100d | 2026-06-09 | 64d | 68.57% | 20.06% |
-| ABB | ₹7386.0 | ₹7330.68 ↑ | ₹6335.28 ↑ | ₹5926.11 ↑ | 2026-03-05 | 128d | 2026-06-01 | 70d | 15.71% | 6.9% |
-| SONACOMS | ₹785.55 | ₹750.49 ↑ | ₹586.62 ↑ | ₹536.14 ↑ | — | — | 2026-06-01 | 70d | 27.94% | 9.41% |
-| IPCALAB | ₹1952.7 | ₹1822.65 ↑ | ₹1581.64 ↑ | ₹1494.28 ↑ | — | — | 2026-05-29 | 71d | 15.24% | 5.85% |
-| SIEMENS | ₹3937.5 | ₹3796.17 ↑ | ₹3449.0 ↑ | ₹3308.73 ↑ | 2026-04-08 | 107d | 2026-05-19 | 79d | 10.07% | 4.24% |
-| VIJAYA | ₹1504.5 | ₹1411.63 ↑ | ₹1157.77 ↑ | ₹1094.86 ↑ | 2026-05-14 | 82d | 2026-05-08 | 86d | 21.93% | 5.75% |
-| AUROPHARMA | ₹1652.5 | ₹1600.32 ↑ | ₹1377.46 ↑ | ₹1270.98 ↑ | — | — | 2026-04-28 | 94d | 16.18% | 8.38% |
-| AJANTPHARM | ₹3521.0 | ₹3466.75 ↑ | ₹3001.19 ↑ | ₹2799.93 ↑ | — | — | 2026-04-22 | 98d | 15.51% | 7.19% |
-| GAEL | ₹166.6 | ₹164.7 ↑ | ₹146.99 ↑ | ₹131.3 ↑ | — | — | 2026-03-27 | 113d | 12.05% | 11.95% |
-| GRANULES | ₹867.5 | ₹851.83 ↑ | ₹692.5 ↑ | ₹612.43 ↑ | — | — | 2026-03-05 | 128d | 23.01% | 13.07% |
-| CGCL | ₹276.6 | ₹241.34 ↑ | ₹197.87 ↑ | ₹190.12 ↑ | 2026-06-03 | 68d | 2026-03-04 | 129d | 21.97% | 4.08% |
-| OIL | ₹483.5 | ₹454.12 ↑ | ₹452.71 ↑ | ₹435.29 ↑ | 2026-09-04 | 1d | 2026-03-02 | 130d | 0.31% | 4.0% |
-| TBOTEK | ₹1706.9 | ₹1582.33 ↑ | ₹1429.6 ↑ | ₹1416.83 ↑ | 2026-08-05 | 23d | 2026-03-02 | 130d | 10.68% | 0.9% |
-| BAJAJ-AUTO | ₹11751.0 | ₹11186.9 ↑ | ₹9939.32 ↑ | ₹9282.1 ↑ | — | — | 2026-02-19 | 137d | 12.55% | 7.08% |
-| METROPOLIS | ₹582.95 | ₹568.06 ↑ | ₹507.7 ↑ | ₹493.11 ↑ | 2026-06-04 | 67d | 2026-02-17 | 139d | 11.89% | 2.96% |
-| HONASA | ₹472.95 | ₹466.11 ↑ | ₹355.26 ↑ | ₹324.4 ↑ | 2026-03-30 | 112d | 2026-02-16 | 140d | 31.2% | 9.51% |
-| APARINDS | ₹17548.0 | ₹15522.54 ↑ | ₹11885.68 ↑ | ₹10263.56 ↑ | — | — | 2026-02-12 | 142d | 30.6% | 15.8% |
-| ZYDUSLIFE | ₹1150.3 | ₹1135.62 ↑ | ₹992.98 ↑ | ₹977.46 ↑ | 2026-06-02 | 69d | 2026-02-12 | 142d | 14.37% | 1.59% |
-| IFCI | ₹103.37 | ₹78.68 ↑ | ₹64.44 ↑ | ₹60.78 ↑ | 2026-02-27 | 131d | 2026-02-09 | 145d | 22.11% | 6.02% |
-| MOTHERSON | ₹163.17 | ₹155.47 ↑ | ₹132.0 ↑ | ₹118.29 ↑ | — | — | 2026-02-06 | 146d | 17.78% | 11.59% |
-| MRPL | ₹174.0 | ₹167.36 ↑ | ₹165.46 ↑ | ₹153.49 ↑ | 2026-09-01 | 4d | 2026-02-06 | 146d | 1.15% | 7.79% |
-| IDEA | ₹15.48 | ₹13.83 ↑ | ₹11.94 ↑ | ₹10.12 ↑ | — | — | 2026-02-04 | 148d | 15.81% | 18.04% |
-| CRAFTSMAN | ₹11241.0 | ₹10043.14 ↑ | ₹8343.18 ↑ | ₹7376.38 ↑ | — | — | — | — | 20.38% | 13.11% |
-| GLAND | ₹2993.4 | ₹2641.12 ↑ | ₹2041.24 ↑ | ₹1929.94 ↑ | 2026-05-28 | 72d | — | — | 29.39% | 5.77% |
-| DIVISLAB | ₹9247.0 | ₹7967.73 ↑ | ₹6765.25 ↑ | ₹6579.7 ↑ | 2026-05-19 | 79d | — | — | 17.77% | 2.82% |
-| CHENNPETRO | ₹1424.8 | ₹1251.34 ↑ | ₹1009.85 ↑ | ₹872.58 ↑ | — | — | — | — | 23.91% | 15.73% |
-| NATIONALUM | ₹370.3 | ₹366.03 ↑ | ₹362.04 ↑ | ₹288.41 ↑ | — | — | — | — | 1.1% | 25.53% |
-| KPIL | ₹1416.8 | ₹1349.06 ↑ | ₹1226.37 ↑ | ₹1202.13 ↑ | 2026-06-01 | 70d | — | — | 10.0% | 2.02% |
-| PAYTM | ₹1666.0 | ₹1448.06 ↑ | ₹1235.94 ↑ | ₹1166.15 ↑ | 2026-08-04 | 24d | — | — | 17.16% | 5.99% |
-| EMCURE | ₹1921.4 | ₹1880.41 ↑ | ₹1638.26 ↑ | ₹1496.03 ↑ | — | — | — | — | 14.78% | 9.51% |
-| LALPATHLAB | ₹1894.4 | ₹1821.92 ↑ | ₹1552.19 ↑ | ₹1531.04 ↑ | 2026-06-08 | 65d | — | — | 17.38% | 1.38% |
-| INOXINDIA | ₹2225.7 | ₹1975.76 ↑ | ₹1477.7 ↑ | ₹1343.74 ↑ | 2026-04-13 | 104d | — | — | 33.71% | 9.97% |
-| BHEL | ₹421.3 | ₹412.68 ↑ | ₹335.09 ↑ | ₹295.23 ↑ | — | — | — | — | 23.16% | 13.5% |
-| LAURUSLABS | ₹1861.4 | ₹1723.41 ↑ | ₹1275.52 ↑ | ₹1069.15 ↑ | — | — | — | — | 35.11% | 19.3% |
-| ANANDRATHI | ₹2230.9 | ₹2113.84 ↑ | ₹1744.39 ↑ | ₹1529.62 ↑ | — | — | — | — | 21.18% | 14.04% |
-| WELCORP | ₹2648.7 | ₹1876.32 ↑ | ₹1210.21 ↑ | ₹1062.8 ↑ | 2026-04-22 | 98d | — | — | 55.04% | 13.87% |
-| APLAPOLLO | ₹2217.9 | ₹1966.38 ↑ | ₹1948.9 ↑ | ₹1846.83 ↑ | 2026-09-03 | 2d | — | — | 0.9% | 5.53% |
-| GLENMARK | ₹2462.7 | ₹2295.56 ↑ | ₹2163.5 ↑ | ₹2010.67 ↑ | — | — | — | — | 6.1% | 7.6% |
-| NETWEB | ₹5199.0 | ₹4741.01 ↑ | ₹3897.32 ↑ | ₹3290.95 ↑ | — | — | — | — | 21.65% | 18.43% |
-| M&MFIN | ₹368.7 | ₹365.16 ↑ | ₹338.39 ↑ | ₹306.88 ↑ | 2026-08-12 | 18d | — | — | 7.91% | 10.27% |
-| HINDALCO | ₹1003.6 | ₹996.59 ↑ | ₹963.56 ↑ | ₹850.81 ↑ | — | — | — | — | 3.43% | 13.25% |
-| TVSMOTOR | ₹4117.2 | ₹4061.84 ↑ | ₹3709.14 ↑ | ₹3441.61 ↑ | 2026-08-04 | 24d | — | — | 9.51% | 7.77% |
-| RADICO | ₹4486.8 | ₹4347.04 ↑ | ₹3425.71 ↑ | ₹3150.79 ↑ | 2026-05-15 | 81d | — | — | 26.89% | 8.73% |
-| UNIONBANK | ₹184.13 | ₹176.49 ↑ | ₹168.6 ↑ | ₹153.49 ↑ | — | — | — | — | 4.68% | 9.84% |
-| SOLARINDS | ₹21990.0 | ₹19147.48 ↑ | ₹15686.06 ↑ | ₹15242.84 ↑ | 2026-04-27 | 95d | — | — | 22.07% | 2.91% |
-| MCX | ₹3332.1 | ₹2914.43 ↑ | ₹2645.02 ↑ | ₹2183.81 ↑ | — | — | — | — | 10.19% | 21.12% |
-| NUVAMA | ₹1842.8 | ₹1806.39 ↑ | ₹1498.27 ↑ | ₹1439.35 ↑ | 2026-06-01 | 70d | — | — | 20.56% | 4.09% |
-| GRAPHITE | ₹723.5 | ₹673.57 ↑ | ₹649.58 ↑ | ₹599.49 ↑ | — | — | — | — | 3.69% | 8.36% |
-| ENGINERSIN | ₹273.9 | ₹241.16 ↑ | ₹219.33 ↑ | ₹212.71 ↑ | 2026-04-21 | 99d | — | — | 9.95% | 3.11% |
-| KARURVYSYA | ₹347.0 | ₹327.75 ↑ | ₹293.34 ↑ | ₹257.8 ↑ | — | — | — | — | 11.73% | 13.78% |
-| INDIANB | ₹868.75 | ₹852.19 ↑ | ₹849.78 ↑ | ₹768.82 ↑ | 2026-09-03 | 2d | — | — | 0.28% | 10.53% |
-| UNOMINDA | ₹1230.8 | ₹1203.11 ↑ | ₹1168.97 ↑ | ₹1153.55 ↑ | 2026-08-24 | 10d | — | — | 2.92% | 1.34% |
-| GRASIM | ₹3316.7 | ₹3209.21 ↑ | ₹2933.57 ↑ | ₹2854.96 ↑ | 2026-05-28 | 72d | — | — | 9.4% | 2.75% |
-| IDFCFIRSTB | ₹86.12 | ₹83.23 ↑ | ₹77.04 ↑ | ₹74.66 ↑ | 2026-07-24 | 31d | — | — | 8.04% | 3.18% |
-| JSWSTEEL | ₹1307.6 | ₹1273.64 ↑ | ₹1221.13 ↑ | ₹1152.45 ↑ | — | — | — | — | 4.3% | 5.96% |
-| RBLBANK | ₹411.75 | ₹377.74 ↑ | ₹334.01 ↑ | ₹299.89 ↑ | — | — | — | — | 13.09% | 11.38% |
-| SAIL | ₹189.36 | ₹173.87 ↑ | ₹164.91 ↑ | ₹149.02 ↑ | — | — | — | — | 5.43% | 10.66% |
-| BOSCHLTD | ₹47940.0 | ₹43968.03 ↑ | ₹37890.9 ↑ | ₹36798.9 ↑ | 2026-06-15 | 60d | — | — | 16.04% | 2.97% |
-| PTCIL | ₹23920.0 | ₹19127.18 ↑ | ₹17845.97 ↑ | ₹16619.58 ↑ | 2026-06-26 | 51d | — | — | 7.18% | 7.38% |
-| CUB | ₹242.66 | ₹219.89 ↑ | ₹204.21 ↑ | ₹183.13 ↑ | — | — | — | — | 7.68% | 11.51% |
-| TITAN | ₹4986.5 | ₹4849.87 ↑ | ₹4315.62 ↑ | ₹3979.02 ↑ | — | — | — | — | 12.38% | 8.46% |
-| NYKAA | ₹337.4 | ₹328.47 ↑ | ₹278.27 ↑ | ₹254.13 ↑ | — | — | — | — | 18.04% | 9.5% |
-| IIFL | ₹659.8 | ₹596.91 ↑ | ₹535.66 ↑ | ₹502.34 ↑ | 2026-07-28 | 29d | — | — | 11.43% | 6.63% |
-| NAVINFLUOR | ₹8625.5 | ₹7978.91 ↑ | ₹6797.71 ↑ | ₹5949.48 ↑ | — | — | — | — | 17.38% | 14.26% |
-| SYRMA | ₹1592.2 | ₹1421.0 ↑ | ₹1029.28 ↑ | ₹880.02 ↑ | — | — | — | — | 38.06% | 16.96% |
-| VARROC | ₹822.95 | ₹735.96 ↑ | ₹609.72 ↑ | ₹586.48 ↑ | 2026-07-07 | 44d | — | — | 20.71% | 3.96% |
-| USHAMART | ₹503.0 | ₹499.36 ↑ | ₹454.16 ↑ | ₹419.44 ↑ | 2026-04-29 | 93d | — | — | 9.95% | 8.28% |
+*No stocks in Stage 2*
 
 ## 🟡 Stage 1 — Half Position (Price > 50↑ > 200↑, 200 < 350)
 
-| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | 50/200 Gap | 200/350 Gap |
-|--------|-----|--------|---------|---------|----------|--------|------------|-------------|
-| POLICYBZR | ₹1814.0 | ₹1674.76 ↑ | ₹1652.07 ↑ | ₹1705.66 ↑ | 2026-08-31 | 5d | 1.37% | — |
-| JYOTICNC | ₹1010.45 | ₹859.43 ↑ | ₹822.58 ↑ | ₹910.25 ↓ | 2026-08-27 | 7d | 4.48% | — |
-| PVRINOX | ₹1145.7 | ₹1115.85 ↑ | ₹1035.32 ↑ | ₹1040.82 ↑ | 2026-08-13 | 17d | 7.78% | — |
-| GLAXO | ₹2991.9 | ₹2670.44 ↑ | ₹2442.52 ↑ | ₹2611.39 ↑ | 2026-08-10 | 20d | 9.33% | — |
-| COFORGE | ₹1937.1 | ₹1698.02 ↑ | ₹1517.05 ↑ | ₹1597.81 ↑ | 2026-08-07 | 21d | 11.93% | — |
-| KALYANKJIL | ₹595.9 | ₹556.97 ↑ | ₹451.56 ↑ | ₹484.75 ↑ | 2026-08-04 | 24d | 23.34% | — |
-| CONCORDBIO | ₹1440.8 | ₹1388.53 ↑ | ₹1256.99 ↑ | ₹1426.1 ↓ | 2026-07-29 | 28d | 10.46% | — |
-| LODHA | ₹1208.1 | ₹1193.87 ↑ | ₹1016.04 ↑ | ₹1130.26 ↑ | 2026-07-29 | 28d | 17.5% | — |
-| PETRONET | ₹290.55 | ₹281.96 ↑ | ₹278.05 ↑ | ₹279.18 ↑ | 2026-07-28 | 29d | 1.41% | — |
-| ICICIBANK | ₹1424.3 | ₹1418.95 ↑ | ₹1346.08 ↑ | ₹1368.37 ↑ | 2026-07-28 | 29d | 5.41% | — |
-| SUNDRMFAST | ₹1205.9 | ₹1069.01 ↑ | ₹925.16 ↑ | ₹948.33 ↑ | 2026-07-28 | 29d | 15.55% | — |
-| REDINGTON | ₹378.65 | ₹316.47 ↑ | ₹261.9 ↑ | ₹262.94 ↑ | 2026-07-23 | 32d | 20.84% | — |
-| CASTROLIND | ₹188.99 | ₹182.63 ↑ | ₹177.95 ↑ | ₹184.43 ↓ | 2026-07-22 | 33d | 2.63% | — |
-| ACE | ₹1114.6 | ₹1069.1 ↑ | ₹940.6 ↑ | ₹1023.29 ↓ | 2026-07-16 | 37d | 13.66% | — |
-| PPLPHARMA | ₹218.14 | ₹195.8 ↑ | ₹171.84 ↑ | ₹184.44 ↓ | 2026-07-14 | 39d | 13.94% | — |
-| MEDANTA | ₹1431.6 | ₹1396.83 ↑ | ₹1215.63 ↑ | ₹1243.28 ↑ | 2026-06-24 | 53d | 14.91% | — |
-| NIACL | ₹226.6 | ₹182.13 ↑ | ₹160.77 ↑ | ₹170.4 ↑ | 2026-06-23 | 54d | 13.29% | — |
-| INDGN | ₹595.95 | ₹539.41 ↑ | ₹508.41 ↑ | ₹531.59 ↑ | 2026-06-23 | 54d | 6.1% | — |
-| JSWINFRA | ₹334.85 | ₹332.83 ↑ | ₹285.67 ↑ | ₹292.69 ↑ | 2026-06-23 | 54d | 16.51% | — |
-| ALKYLAMINE | ₹2021.7 | ₹1904.06 ↑ | ₹1652.07 ↑ | ₹1793.41 ↑ | 2026-06-23 | 54d | 15.25% | — |
-| HAL | ₹4867.0 | ₹4694.28 ↑ | ₹4359.65 ↑ | ₹4490.68 ↑ | 2026-06-19 | 56d | 7.68% | — |
-| QUESS | ₹345.0 | ₹318.95 ↑ | ₹231.06 ↑ | ₹248.14 ↓ | 2026-06-19 | 56d | 38.04% | — |
-| TATATECH | ₹786.65 | ₹774.61 ↑ | ₹664.94 ↑ | ₹675.55 ↑ | 2026-06-17 | 58d | 16.49% | — |
-| CAPLIPOINT | ₹2815.0 | ₹2583.75 ↑ | ₹2048.29 ↑ | ₹2051.08 ↑ | 2026-06-16 | 59d | 26.14% | — |
-| RAINBOW | ₹1485.0 | ₹1474.25 ↑ | ₹1323.69 ↑ | ₹1370.9 ↑ | 2026-06-16 | 59d | 11.37% | — |
-| RAYMOND | ₹775.55 | ₹624.55 ↑ | ₹490.4 ↑ | ₹592.84 ↓ | 2026-06-15 | 60d | 27.36% | — |
-| GNFC | ₹597.55 | ₹542.58 ↑ | ₹493.76 ↑ | ₹499.39 ↑ | 2026-06-11 | 62d | 9.89% | — |
-| KAJARIACER | ₹1226.4 | ₹1219.14 ↑ | ₹1083.02 ↑ | ₹1093.78 ↑ | 2026-06-03 | 68d | 12.57% | — |
-| SHYAMMETL | ₹1082.5 | ₹1013.47 ↑ | ₹893.92 ↑ | ₹894.45 ↑ | 2026-06-02 | 69d | 13.37% | — |
-| OBEROIRLTY | ₹1860.1 | ₹1857.84 ↑ | ₹1669.9 ↑ | ₹1684.44 ↑ | 2026-06-01 | 70d | 11.25% | — |
-| RKFORGE | ₹709.7 | ₹659.18 ↑ | ₹572.1 ↑ | ₹582.35 ↓ | 2026-05-12 | 84d | 15.22% | — |
-| MAHSEAMLES | ₹705.45 | ₹598.83 ↑ | ₹579.62 ↑ | ₹605.4 ↓ | 2026-05-07 | 87d | 3.31% | — |
-| RATNAMANI | ₹2697.1 | ₹2483.4 ↑ | ₹2412.82 ↑ | ₹2485.26 ↓ | 2026-05-04 | 90d | 2.93% | — |
-| BALRAMCHIN | ₹704.5 | ₹627.59 ↑ | ₹517.7 ↑ | ₹527.39 ↑ | 2026-04-30 | 92d | 21.23% | — |
+*No stocks in Stage 1*
 
-## 🟢 Hold — Stacked but SMAs not all rising
+## ⚠️ Exceptions (true script/API errors)
 
-| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | T2 Cross | T2 Age | 50/200 Gap | 200/350 Gap |
-|--------|-----|--------|---------|---------|----------|--------|----------|--------|------------|-------------|
-| CGPOWER | ₹897.0 | ₹892.21 ↓ | ₹777.76 ↑ | ₹743.33 ↑ | 2026-04-15 | 103d | 2026-02-11 | 143d | 14.72% | 4.63% |
-| ZFCVINDIA | ₹2506.4 | ₹2486.84 ↓ | ₹2443.11 ↑ | ₹2339.69 ↑ | — | — | — | — | 1.79% | 4.42% |
-| DATAPATTNS | ₹4587.1 | ₹4478.66 ↓ | ₹3604.64 ↑ | ₹3214.04 ↑ | 2026-03-10 | 125d | — | — | 24.25% | 12.15% |
-| LT | ₹3981.9 | ₹3976.5 ↓ | ₹3960.39 ↑ | ₹3803.93 ↑ | 2026-06-01 | 70d | — | — | 0.41% | 4.11% |
-| SCI | ₹294.6 | ₹288.99 ↓ | ₹265.83 ↑ | ₹240.45 ↑ | — | — | — | — | 8.71% | 10.56% |
-| GESHIP | ₹1365.3 | ₹1357.59 ↓ | ₹1318.09 ↑ | ₹1161.27 ↑ | — | — | 2026-02-05 | 147d | 3.0% | 13.5% |
-| MAHABANK | ₹85.15 | ₹81.99 ↓ | ₹72.28 ↑ | ₹64.14 ↑ | — | — | — | — | 13.43% | 12.69% |
-| CARBORUNIV | ₹1113.7 | ₹1102.28 ↓ | ₹950.02 ↑ | ₹948.19 ↑ | 2026-05-18 | 80d | 2026-09-03 | 2d | 16.03% | 0.19% |
-| NSLNISP | ₹45.87 | ₹43.32 ↑ | ₹42.3 ↓ | ₹41.54 ↑ | 2026-06-04 | 67d | 2026-02-26 | 132d | 2.42% | 1.82% |
-
-## ⚪ Wait — Cross active but 50 and/or 200 SMA not rising
-
-| Symbol | LTP | SMA 50 | SMA 200 | SMA 350 | T1 Cross | T1 Age | 50/200 Gap | 200/350 Gap |
-|--------|-----|--------|---------|---------|----------|--------|------------|-------------|
-| MAZDOCK | ₹2468.4 | ₹2460.37 ↓ | ₹2458.24 ↓ | ₹2667.02 ↑ | 2026-09-07 | 0d | 0.09% | — |
-| DEVYANI | ₹137.97 | ₹126.39 ↑ | ₹122.78 ↓ | ₹142.7 ↓ | 2026-08-27 | 7d | 2.94% | — |
-| DIXON | ₹14297.0 | ₹13972.66 ↑ | ₹12152.83 ↓ | ₹13844.97 ↑ | 2026-07-27 | 30d | 14.97% | — |
-| CONCOR | ₹503.1 | ₹500.85 ↑ | ₹492.87 ↓ | ₹520.18 ↓ | 2026-08-25 | 9d | 1.62% | — |
-| LICHSGFIN | ₹560.4 | ₹523.24 ↑ | ₹523.16 ↓ | ₹543.47 ↓ | 2026-09-07 | 0d | 0.02% | — |
-| NUVOCO | ₹341.3 | ₹335.11 ↑ | ₹329.19 ↓ | ₹356.4 ↑ | 2026-08-24 | 10d | 1.8% | — |
-| APLLTD | ₹817.9 | ₹817.15 ↑ | ₹776.74 ↓ | ₹842.41 ↓ | 2026-08-11 | 19d | 5.2% | — |
-| ANANTRAJ | ₹640.1 | ₹598.78 ↑ | ₹540.76 ↓ | ₹551.89 ↑ | 2026-07-28 | 29d | 10.73% | — |
-| MOTILALOFS | ₹1055.2 | ₹945.86 ↑ | ₹848.37 ↓ | ₹860.92 ↑ | 2026-06-22 | 55d | 11.49% | — |
-| HOMEFIRST | ₹1233.5 | ₹1198.4 ↑ | ₹1125.68 ↓ | ₹1179.07 ↑ | 2026-07-10 | 41d | 6.46% | — |
-| DLF | ₹675.25 | ₹660.88 ↑ | ₹625.05 ↓ | ₹682.29 ↑ | 2026-08-13 | 17d | 5.73% | — |
-| GAIL | ₹176.3 | ₹173.36 ↑ | ₹164.56 ↓ | ₹169.68 ↑ | 2026-06-22 | 55d | 5.35% | — |
-| SAPPHIRE | ₹226.85 | ₹207.28 ↑ | ₹201.44 ↓ | ₹248.88 ↓ | 2026-08-31 | 5d | 2.9% | — |
-| NAUKRI | ₹1296.1 | ₹1243.06 ↑ | ₹1147.63 ↓ | ₹1250.74 ↑ | 2026-08-19 | 13d | 8.32% | — |
-| JUSTDIAL | ₹686.3 | ₹676.83 ↑ | ₹624.2 ↓ | ₹725.41 ↓ | 2026-08-14 | 16d | 8.43% | — |
-| BAJAJFINSV | ₹1960.0 | ₹1953.57 ↑ | ₹1902.13 ↓ | ₹1953.1 ↑ | 2026-08-24 | 10d | 2.7% | — |
-| CHALET | ₹906.7 | ₹849.31 ↑ | ₹823.69 ↓ | ₹865.51 ↑ | 2026-08-20 | 12d | 3.11% | — |
-| PRAJIND | ₹337.25 | ₹336.2 ↓ | ₹332.21 ↑ | ₹372.33 ↓ | 2026-05-15 | 81d | 1.2% | — |
-| CDSL | ₹1431.2 | ₹1362.15 ↑ | ₹1332.25 ↓ | ₹1422.05 ↑ | 2026-08-24 | 10d | 2.24% | — |
-| BASF | ₹3820.1 | ₹3784.84 ↑ | ₹3676.67 ↓ | ₹4113.18 ↓ | 2026-08-20 | 12d | 2.94% | — |
-| BEML | ₹2087.1 | ₹1858.38 ↑ | ₹1764.26 ↓ | ₹1879.78 ↑ | 2026-08-10 | 20d | 5.34% | — |
-| POLYMED | ₹1736.7 | ₹1713.51 ↑ | ₹1582.66 ↓ | ₹1812.27 ↓ | 2026-08-07 | 21d | 8.27% | — |
-| AFFLE | ₹1638.0 | ₹1583.78 ↑ | ₹1547.04 ↓ | ₹1683.27 ↑ | 2026-08-24 | 10d | 2.37% | — |
-| FINEORG | ₹5127.5 | ₹5057.24 ↓ | ₹4630.8 ↑ | ₹4660.57 ↑ | 2026-05-21 | 77d | 9.21% | — |
-| KPRMILL | ₹1157.3 | ₹1115.52 ↓ | ₹983.59 ↑ | ₹1026.59 ↑ | 2026-06-18 | 57d | 13.41% | — |
-| GODREJAGRO | ₹656.05 | ₹575.05 ↑ | ₹570.16 ↓ | ₹632.96 ↓ | 2026-09-02 | 3d | 0.86% | — |
-| MANYAVAR | ₹589.75 | ₹470.75 ↑ | ₹466.42 ↓ | ₹583.37 ↓ | 2026-09-04 | 1d | 0.93% | — |
-| TEJASNET | ₹595.05 | ₹538.17 ↓ | ₹469.96 ↑ | ₹542.87 ↓ | 2026-06-16 | 59d | 14.51% | — |
-| BRIGADE | ₹683.3 | ₹583.95 ↑ | ₹571.82 ↓ | ₹654.16 ↓ | 2026-09-02 | 3d | 2.12% | — |
-| CRISIL | ₹4834.0 | ₹4396.87 ↑ | ₹4289.28 ↓ | ₹4619.76 ↑ | 2026-08-25 | 9d | 2.51% | — |
-| TITAGARH | ₹892.55 | ₹844.8 ↓ | ₹795.48 ↓ | ₹829.0 ↑ | 2026-06-23 | 54d | 6.2% | — |
+| Symbol | Reason |
+|--------|--------|
+| VIJAYA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| NIACL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| CGPOWER | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| GAEL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| CRAFTSMAN | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| GLAND | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| DIVISLAB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| CHENNPETRO | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| NATIONALUM | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| KPIL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| DEVYANI | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| PAYTM | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| KALYANKJIL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| APARINDS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| EMCURE | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| IDEA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| LALPATHLAB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| AKUMS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| PETRONET | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| COFORGE | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| INOXINDIA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| OBEROIRLTY | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| DIXON | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| CONCORDBIO | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| PPLPHARMA | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| BHEL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| MEDANTA | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| BAJAJ-AUTO | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| LAURUSLABS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| INDGN | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| METROPOLIS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| SIEMENS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| ABB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| CONCOR | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| ZFCVINDIA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| ANANDRATHI | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| WELCORP | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| HFCL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| APLAPOLLO | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| RATNAMANI | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| LICHSGFIN | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| GLENMARK | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| LODHA | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| OFSS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| NUVOCO | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| NETWEB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| M&MFIN | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| HINDALCO | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| TVSMOTOR | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| HAL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| RADICO | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| DATAPATTNS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| ELGIEQUIP | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| UNIONBANK | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| OIL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| ANANTRAJ | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| SOLARINDS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| MCX | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| FLUOROCHEM | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| MOTILALOFS | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| CAPLIPOINT | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| PNBHOUSING | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| IPCALAB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| PCBL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| ICICIBANK | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| BALAMINES | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| NUVAMA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| GRAPHITE | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| HOMEFIRST | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| DLF | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| QUESS | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| ENGINERSIN | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| KARURVYSYA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| LT | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| GAIL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| SAPPHIRE | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| MMTC | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| NAUKRI | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| JUSTDIAL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| BAJAJFINSV | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| INDIANB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| JYOTICNC | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| CGCL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| CHALET | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| PRAJIND | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| MOTHERSON | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| SCI | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| ZYDUSLIFE | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| CDSL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| AUROPHARMA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| TBOTEK | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| UNOMINDA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| GRASIM | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| AJANTPHARM | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| BASF | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| CASTROLIND | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| JSWINFRA | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| GVT&D | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| ALKYLAMINE | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| IDFCFIRSTB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| REDINGTON | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| ACE | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| TATATECH | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| GNFC | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| GESHIP | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| JSWSTEEL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| BALRAMCHIN | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| SONACOMS | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| RBLBANK | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| SAIL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| BEML | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| BOSCHLTD | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| PTCIL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| CUB | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| IFCI | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| GRANULES | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| POLYMED | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| TITAN | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| NYKAA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| MAHABANK | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| IIFL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| NAVINFLUOR | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| POLICYBZR | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| AFFLE | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| SHYAMMETL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| WELSPUNLIV | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| MAHSEAMLES | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| FINEORG | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| HONASA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| GLAXO | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| SYRMA | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| JINDALSAW | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| CARBORUNIV | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| KPRMILL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| SUNDRMFAST | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| GODREJAGRO | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| RKFORGE | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| KAJARIACER | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| MRPL | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| MANYAVAR | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| TEJASNET | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| BRIGADE | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| CRISIL | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| VARROC | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| RAYMOND | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| NSLNISP | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| PVRINOX | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| RAINBOW | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| USHAMART | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
+| TITAGARH | exception: UnboundLocalError: cannot access local variable 'price_vs_50' where it is not associated with a value |
+| FINCABLES | exception: UnboundLocalError: cannot access local variable 'gap_200_350' where it is not associated with a value |
 
 ---
 
@@ -217,11 +198,29 @@
 
 | Status | Condition | Action | Position |
 |--------|-----------|--------|----------|
-| 🆕 Fresh T1 | 50/200 bullish cross ≤30 trading bars | Candidate for T1 | — |
-| 🟡 Stage 1 | Price > 50 > 200, 200 < 350, 50↑ 200↑ | Buy T1 | 50% |
-| 🆕 Fresh T2 | 200/350 bullish cross ≤30 trading bars | Candidate for T2 | — |
-| 🟢 Stage 2 | Price > 50 > 200 > 350, 50↑ 200↑ | Add T2 | 100% |
+| 🟡 Stage 1 | Price > 50 > 200, 200 < 350, 50↑ 200↑ | Technical formation only | — |
+| 🟢 Stage 2 | Price > 50 > 200 > 350, 50↑ 200↑ | Technical formation only | — |
 | ⚪ Wait | Cross active but SMA not rising | No action | — |
+
+**T1 state (evaluated in this priority order — first match wins):**
+| State | Meaning |
+|-------|---------|
+| T1_INVALID | 50 and/or 200 SMA not rising (fails Strict gate) |
+| T1_EXPIRED | Cross exists but is stale (outside 30-bar freshness window) |
+| T1_EXTENDED | Price >5% above 50 SMA — outside the early-entry band |
+| T1_WHIPSAW | Otherwise eligible, but a prior T2 cross predates this T1 (reverted-stack re-entry) |
+| T1_FRAGILE | Eligible — 50/200 gap <1.5%, flagged as fragile |
+| T1_VALID | Eligible — clean transition |
+
+**T2 state:**
+| State | Meaning |
+|-------|---------|
+| T2_INVALID | 50 and/or 200 SMA not rising |
+| T2_EXPIRED | Cross exists but is stale |
+| T2_FRAGILE | Eligible — 200/350 gap <1.5% |
+| T2_VALID | Eligible — Developing or Healthy gap |
+
+Only `T1_VALID`/`T1_FRAGILE` and `T2_VALID`/`T2_FRAGILE` are technically eligible. Technical eligibility is necessary but not sufficient — the Fundamental Quadrant Gate and news/catalyst check (never computed by this scanner) still apply before any entry decision.
 
 **SMA Direction:** 50 SMA vs 5 trading bars ago · 200/350 SMA vs 20 trading bars ago
 
