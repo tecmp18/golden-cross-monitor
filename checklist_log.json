@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "week_of": "2026-09-05",
+    "issue_number": 46,
+    "total_tasks": 15,
+    "completed_tasks": 0,
+    "completion_pct": 0,
+    "missed_tasks": [
+      "1. Run crossover_scan.py and generate fresh JSON",
+      "2. Sanity-check the run (total_scanned vs errors, timestamp current, error rate vs baseline)",
+      "3. Filter JSON per tranche-entry-rules.md checklist (freshness, SMA direction, whipsaw, extension, gap)",
+      "4. Sort survivors into Tier A (Fresh T2) / Tier B (Fresh T1) / Excluded (with reason)",
+      "5. Check Hold list for sma50_rising = False (early warning flags)",
+      "Review status.json holdings for possible redeployment: Pull SMA data for current holdings (falling 50 SMA, thin/fragile 200/350 gap)",
+      "Review status.json holdings for possible redeployment: Chart-check each flagged holding to confirm the weakness",
+      "Review status.json holdings for possible redeployment: Look up EPS/PE quadrant classification for each flagged holding",
+      "Review status.json holdings for possible redeployment: Compare weakest holdings against this week's Tier A/B candidates for a possible swap",
+      "Chart review of shortlisted candidates: Pull chart for each shortlisted Tier A/B name",
+      "Chart review of shortlisted candidates: Confirm clean trend structure (support/resistance, no rejection candles, no chop)",
+      "Chart review of shortlisted candidates: Check EPS/PE quadrant classification for each — confirm BEST or GREAT",
+      "Chart review of shortlisted candidates: Note any shortlisted name missing from watchlist_quadrant.csv (stale monthly refresh)",
+      "8. News/regulatory catalyst check before any entry decision",
+      "9. Buy/pass decision + place GTT orders in Zerodha if entering"
+    ],
+    "closed_at": "2026-09-07T07:46:20.980Z"
+  }
+]
