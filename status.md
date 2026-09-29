@@ -1,6 +1,6 @@
 # Golden Cross Monitor
 
-**Last updated:** 2026-09-28 23:58 IST
+**Last updated:** 2026-09-29 22:17 IST
 **Market (Nifty 500):** ✗ Nifty 500 below 200 SMA — avoid new entries
 
 ↑ = SMA rising (50: 5d, 200/350: 20d) · ↓ = SMA falling
@@ -11,32 +11,32 @@
 
 | Symbol | Status | LTP | SMA 50 | SMA 200 | SMA 350 | 50/200 | 200/350 | Alerts |
 |--------|--------|-----|--------|---------|---------|--------|---------|--------|
-| AARTIIND | 🟢 HOLD BOTH | ₹476.6 | ₹502.26 ↓ | ₹452.4 ↑ | ₹435.14 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening |
-| ATHERENERG | ❌ ERROR | — | — | — | — | — | — | Insufficient data (353 bars) |
-| BANKBEES | 🟢 HOLD BOTH | ₹565.32 | ₹591.05 ↓ | ₹590.46 ↓ | ₹586.65 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening; 200 SMA falling — trend weakening |
-| BORANA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (336 bars) |
-| CANBK | 🟡 SELL T1 | ₹120.65 | ₹126.72 ↓ | ₹133.76 ↓ | ₹125.98 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
-| DALBHARAT | 🔴 EXIT ALL | ₹1651.6 | ₹1798.76 ↓ | ₹1887.78 ↓ | ₹2005.6 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| FMCGIETF | 🔴 EXIT ALL | ₹48.76 | ₹51.05 ↓ | ₹53.39 ↓ | ₹55.94 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| PNBHOUSING | 🟢 HOLD BOTH | ₹1085.0 | ₹1130.94 ↑ | ₹985.6 ↑ | ₹962.38 ↑ | ✓ | ✓ | — |
-| ICICIB22 | 🟡 SELL T1 | ₹110.69 | ₹114.58 ↓ | ₹118.73 ↓ | ₹115.3 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
-| IEX | 🔴 EXIT ALL | ₹111.35 | ₹121.52 ↓ | ₹124.51 ↓ | ₹138.23 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| ITBEES | 🔴 EXIT ALL | ₹31.23 | ₹33.42 ↓ | ₹34.68 ↓ | ₹36.92 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| JUNIORBEES | 🟢 HOLD BOTH | ₹761.9 | ₹790.86 ↓ | ₹756.11 ↑ | ₹744.67 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening |
-| AKUMS | 🟢 HOLD BOTH | ₹799.95 | ₹742.69 ↑ | ₹569.69 ↑ | ₹537.91 ↑ | ✓ | ✓ | — |
-| LGEINDIA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (241 bars) |
-| LTFOODS | 🟠 SELL T2 | ₹408.5 | ₹421.53 ↑ | ₹399.34 ↑ | ₹413.85 ↑ | ✓ | ✗ | 200 < 350 — sell tranche 2 |
+| AARTIIND | 🟢 HOLD BOTH | ₹469.9 | ₹501.69 ↓ | ₹452.97 ↑ | ₹435.2 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening |
+| ATHERENERG | ❌ ERROR | — | — | — | — | — | — | Insufficient data (354 bars) |
+| BANKBEES | 🟢 HOLD BOTH | ₹564.42 | ₹591.03 ↓ | ₹590.45 ↓ | ₹586.65 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening; 200 SMA falling — trend weakening |
+| BORANA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (337 bars) |
+| CANBK | 🟡 SELL T1 | ₹119.51 | ₹126.56 ↓ | ₹133.65 ↓ | ₹126.06 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
+| DALBHARAT | 🔴 EXIT ALL | ₹1637.4 | ₹1794.22 ↓ | ₹1886.06 ↓ | ₹2004.71 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
+| FMCGIETF | 🔴 EXIT ALL | ₹48.35 | ₹50.96 ↓ | ₹53.34 ↓ | ₹55.91 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
+| PNBHOUSING | 🟢 HOLD BOTH | ₹1098.2 | ₹1131.19 ↑ | ₹986.44 ↑ | ₹962.61 ↑ | ✓ | ✓ | — |
+| ICICIB22 | 🟡 SELL T1 | ₹110.35 | ₹114.57 ↓ | ₹118.73 ↓ | ₹115.3 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
+| IEX | 🔴 EXIT ALL | ₹106.39 | ₹121.15 ↓ | ₹124.35 ↓ | ₹138.01 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
+| ITBEES | 🔴 EXIT ALL | ₹30.8 | ₹33.41 ↓ | ₹34.68 ↓ | ₹36.92 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
+| JUNIORBEES | 🟢 HOLD BOTH | ₹761.66 | ₹790.85 ↓ | ₹756.11 ↑ | ₹744.67 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening |
+| AKUMS | 🟢 HOLD BOTH | ₹819.55 | ₹745.18 ↑ | ₹571.67 ↑ | ₹538.79 ↑ | ✓ | ✓ | — |
+| LGEINDIA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (242 bars) |
+| LTFOODS | 🟠 SELL T2 | ₹402.8 | ₹422.0 ↑ | ₹399.46 ↑ | ₹413.98 ↑ | ✓ | ✗ | 200 < 350 — sell tranche 2 |
 | MID150BEES | ❌ ERROR | — | — | — | — | — | — | Insufficient data (5 bars) |
-| NIFTYBEES | 🔴 EXIT ALL | ₹260.47 | ₹273.11 ↓ | ₹276.5 ↓ | ₹279.63 ↑ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| ORKLAINDIA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (226 bars) |
-| RBA | 🟠 SELL T2 | ₹91.61 | ₹90.99 ↑ | ₹72.45 ↑ | ₹74.28 ↑ | ✓ | ✗ | 200 < 350 — sell tranche 2 |
-| SAMMAANCAP | 🟢 HOLD BOTH | ₹138.82 | ₹153.07 ↓ | ₹153.04 ↓ | ₹147.96 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening; 200 SMA falling — trend weakening |
-| TATACAP | ❌ ERROR | — | — | — | — | — | — | Insufficient data (242 bars) |
-| TCS | 🔴 EXIT ALL | ₹2070.7 | ₹2285.88 ↓ | ₹2479.5 ↓ | ₹2730.22 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
-| COFORGE | 🟠 SELL T2 | ₹1773.0 | ₹1799.13 ↑ | ₹1515.38 ↓ | ₹1617.54 ↑ | ✓ | ✗ | 200 < 350 — sell tranche 2 |
-| TVSMOTOR | 🟢 HOLD BOTH | ₹4095.0 | ₹4214.14 ↑ | ₹3750.74 ↑ | ₹3501.39 ↑ | ✓ | ✓ | — |
+| NIFTYBEES | 🔴 EXIT ALL | ₹259.47 | ₹273.09 ↓ | ₹276.49 ↓ | ₹279.63 ↑ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
+| ORKLAINDIA | ❌ ERROR | — | — | — | — | — | — | Insufficient data (227 bars) |
+| RBA | 🟠 SELL T2 | ₹91.98 | ₹91.52 ↑ | ₹72.59 ↑ | ₹74.32 ↑ | ✓ | ✗ | 200 < 350 — sell tranche 2 |
+| SAMMAANCAP | 🟡 SELL T1 | ₹136.48 | ₹152.53 ↓ | ₹152.98 ↓ | ₹148.02 ↑ | ✗ | ✓ | 50 < 200 — sell tranche 1 |
+| TATACAP | ❌ ERROR | — | — | — | — | — | — | Insufficient data (243 bars) |
+| TCS | 🔴 EXIT ALL | ₹2032.4 | ₹2282.11 ↓ | ₹2474.14 ↓ | ₹2726.71 ↓ | ✗ | ✗ | 50<200 AND 200<350 — sell everything |
+| COFORGE | 🟠 SELL T2 | ₹1722.0 | ₹1803.76 ↑ | ₹1514.78 ↓ | ₹1618.11 ↑ | ✓ | ✗ | 200 < 350 — sell tranche 2 |
+| TVSMOTOR | 🟢 HOLD BOTH | ₹4091.1 | ₹4220.12 ↑ | ₹3752.99 ↑ | ₹3505.5 ↑ | ✓ | ✓ | — |
 | WAAREERTL | ❌ ERROR | — | — | — | — | — | — | SMA not ready |
-| YESBANK | 🟢 HOLD BOTH | ₹21.18 | ₹22.74 ↓ | ₹21.89 ↑ | ₹21.51 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening |
+| YESBANK | 🟢 HOLD BOTH | ₹20.71 | ₹22.69 ↓ | ₹21.88 ↑ | ₹21.51 ↑ | ✓ | ✓ | 50 SMA falling — momentum weakening |
 
 ---
 
