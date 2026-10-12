@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-09T22:50:20.360737+05:30",
+  "updated": "2026-10-13T01:37:14.614818+05:30",
   "market": {
     "signal": "\u2717",
     "note": "Nifty 500 below 200 SMA \u2014 avoid new entries"
@@ -39,15 +39,15 @@
       "exit_t1": false,
       "exit_t2": false,
       "alerts": [],
-      "error": "Insufficient data (357 bars)"
+      "error": "Insufficient data (358 bars)"
     },
     {
       "symbol": "BANKBEES",
       "status": "\ud83d\udfe1 SELL T1",
       "ltp": 572.92,
-      "sma50": 587.92,
-      "sma200": 589.54,
-      "sma350": 586.59,
+      "sma50": 587.37,
+      "sma200": 589.32,
+      "sma350": 586.6,
       "gc_50_200": "False",
       "gc_200_350": "True",
       "sma50_rising": "False",
@@ -75,7 +75,7 @@
       "exit_t1": false,
       "exit_t2": false,
       "alerts": [],
-      "error": "Insufficient data (341 bars)"
+      "error": "Insufficient data (342 bars)"
     },
     {
       "symbol": "CANBK",
@@ -155,9 +155,9 @@
       "symbol": "ICICIB22",
       "status": "\ud83d\udfe1 SELL T1",
       "ltp": 108.11,
-      "sma50": 113.78,
-      "sma200": 118.44,
-      "sma350": 115.22,
+      "sma50": 113.6,
+      "sma200": 118.39,
+      "sma350": 115.23,
       "gc_50_200": "False",
       "gc_200_350": "True",
       "sma50_rising": "False",
@@ -193,9 +193,9 @@
       "symbol": "ITBEES",
       "status": "\ud83d\udd34 EXIT ALL",
       "ltp": 31.84,
-      "sma50": 33.26,
-      "sma200": 34.51,
-      "sma350": 36.84,
+      "sma50": 33.19,
+      "sma200": 34.46,
+      "sma350": 36.81,
       "gc_50_200": "False",
       "gc_200_350": "False",
       "sma50_rising": "False",
@@ -212,9 +212,9 @@
       "symbol": "JUNIORBEES",
       "status": "\ud83d\udfe2 HOLD BOTH",
       "ltp": 738.11,
-      "sma50": 786.47,
-      "sma200": 755.61,
-      "sma350": 744.76,
+      "sma50": 785.9,
+      "sma200": 755.94,
+      "sma350": 745.16,
       "gc_50_200": "True",
       "gc_200_350": "True",
       "sma50_rising": "False",
@@ -259,7 +259,7 @@
       "exit_t1": false,
       "exit_t2": false,
       "alerts": [],
-      "error": "Insufficient data (245 bars)"
+      "error": "Insufficient data (246 bars)"
     },
     {
       "symbol": "LTFOODS",
@@ -303,9 +303,9 @@
       "symbol": "NIFTYBEES",
       "status": "\ud83d\udd34 EXIT ALL",
       "ltp": 257.35,
-      "sma50": 271.1,
-      "sma200": 275.7,
-      "sma350": 279.36,
+      "sma50": 270.66,
+      "sma200": 275.51,
+      "sma350": 279.3,
       "gc_50_200": "False",
       "gc_200_350": "False",
       "sma50_rising": "False",
@@ -333,7 +333,7 @@
       "exit_t1": false,
       "exit_t2": false,
       "alerts": [],
-      "error": "Insufficient data (230 bars)"
+      "error": "Insufficient data (231 bars)"
     },
     {
       "symbol": "RBA",
@@ -388,7 +388,7 @@
       "exit_t1": false,
       "exit_t2": false,
       "alerts": [],
-      "error": "Insufficient data (246 bars)"
+      "error": "Insufficient data (247 bars)"
     },
     {
       "symbol": "TCS",
