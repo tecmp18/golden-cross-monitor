@@ -1,6 +1,6 @@
 # Golden Cross Monitor
 
-**Last updated:** 2026-10-19 22:50 IST
+**Last updated:** 2026-10-20 21:03 IST
 **Market (Nifty 500):** ✗ Nifty 500 below 200 SMA — avoid new entries
 
 ↑ = SMA rising (50: 5d, 200/350: 20d) · ↓ = SMA falling
